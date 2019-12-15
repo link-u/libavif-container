@@ -8,9 +8,9 @@ namespace avif::util {
 
 void FileLogger::writeLog_(Logger::Level lv, std::string const& msg) {
   if(lv < WARN) {
-    fprintf(this->output_, "%s\n", msg.c_str())
+    fprintf(this->output_, "%s\n", msg.c_str());
   } else {
-    fprintf(this->errorOutput_, "%s\n", msg.c_str())
+    fprintf(this->errorOutput_, "%s\n", msg.c_str());
   }
 }
 
