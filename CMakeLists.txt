@@ -10,8 +10,10 @@ add_library(
         # 3rd party
         external/tinyformat/tinyformat.h
         # sources
-        src/util/Logger.hpp
-        src/util/Logger.cpp
+        src/avif/util/Logger.hpp
+        src/avif/util/Logger.cpp
+        src/avif/util/FileLogger.cpp
+        src/avif/util/FileLogger.hpp
         src/avif/Parser.cpp
         src/avif/Parser.hpp
         src/avif/Box.hpp
@@ -29,4 +31,4 @@ add_library(
         src/avif/PixelInformationProperty.hpp
         src/avif/ItemPropertyAssociation.hpp
         src/avif/AV1CodecConfigurationBox.hpp
-        )
+)

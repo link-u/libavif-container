@@ -3,3 +3,7 @@
 //
 
 #include "Logger.hpp"
+
+namespace avif::util {
+
+}

@@ -6,10 +6,9 @@
 
 #include <string>
 #include <iomanip>
+#include "../../../external/tinyformat/tinyformat.h"
 
-#include "../../external/tinyformat/tinyformat.h"
-
-namespace util {
+namespace avif::util {
 
 class Logger {
 public:
@@ -21,24 +20,23 @@ public:
     ERROR,
     FATAL,
   };
+
 private:
   Level level_;
-  FILE *const output_;
-  FILE *const errorOutput_;
+
+protected:
+  explicit Logger(Level level)
+      :level_(level)
+  {
+  }
+
 public:
   Logger() = delete;
   Logger(Logger const&) = delete;
   Logger(Logger&&) = delete;
   Logger& operator=(Logger const&) = delete;
   Logger& operator=(Logger&&) = delete;
-
-public:
-  Logger(FILE* output, FILE* errOutput, Level level)
-  :output_(output)
-  ,errorOutput_(errOutput)
-  ,level_(level)
-  {
-  }
+  virtual ~Logger() noexcept = default;
 
 public:
   template<typename ...Args>
@@ -87,29 +85,32 @@ private:
     std::stringstream ss;
     ss << std::put_time(&tm, "%Y/%m/%d %H:%M:%S");
     std::string const time = ss.str();
+    std::string output{};
     switch (level) {
       case Level::TRACE:
-        fprintf(this->output_, "[%s TRACE] %s\n", time.c_str(), msg.c_str());
+        output = tfm::format("[%s TRACE] %s", time, msg);
         break;
       case Level::DEBUG:
-        fprintf(this->output_, "[%s DEBUG] %s\n", time.c_str(), msg.c_str());
+        output = tfm::format("[%s DEBUG] %s", time, msg);
         break;
       case Level::INFO:
-        fprintf(this->output_, "[%s INFO ] %s\n", time.c_str(), msg.c_str());
+        output = tfm::format("[%s INFO ] %s", time, msg);
         break;
       case Level::WARN:
-        fprintf(this->output_, "[%s WARN ] %s\n", time.c_str(), msg.c_str());
+        output = tfm::format("[%s WARN ] %s", time, msg);
         break;
       case Level::ERROR:
-        fprintf(this->errorOutput_, "[%s ERROR] %s\n", time.c_str(), msg.c_str());
+        output = tfm::format("[%s ERROR] %s", time, msg);
         break;
       case Level::FATAL:
-        std::string err = tfm::format("[%s FATAL] %s\n", time, msg);
-        fputs(err.c_str(), this->errorOutput_);
-        throw std::runtime_error(err);
+        output = tfm::format("[%s FATAL] %s", time, msg);
     }
-    fflush(this->output_);
+    this->writeLog_(level, output);
+    if(level == Level::FATAL) {
+      throw std::runtime_error(msg);
+    }
   }
+  virtual void writeLog_(Level lv, std::string const& msg) = 0;
 };
 
 }
