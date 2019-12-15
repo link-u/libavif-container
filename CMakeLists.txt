@@ -3,7 +3,7 @@ project(libavif_container)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -pg -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 
 add_library(
         libavif-container
