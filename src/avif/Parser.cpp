@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "../../external/tinyformat/tinyformat.h"
-#include "../util/Logger.hpp"
+#include "util/Logger.hpp"
 
 #include "Parser.hpp"
 #include "FileBox.hpp"
