@@ -1,6 +1,26 @@
+# libavif-container
+
+A library to manipulate avif container. It's for neither decoding nor encoding.
+
+Currently, it just supports **parsing** avif container. It is planned to support **writing** avif files.
+
 # How to use
 
-TBD
+## From CMake
+
+We suggest you to vendor this library to your repo using `git submodule add`.
+
+```cmake
+# example: git submodule add <this repo> external/libavif-container
+add_subdirectory(external/libavif-container)
+
+# libavif-container depends on C++17 features,
+# so we strongly recommended you to use C++17 or higher.
+set(CMAKE_CXX_STANDARD 17)
+
+# link to your library or executable
+target_link_libraries(<your-target> libavif-container)
+```
 
 # License
 
