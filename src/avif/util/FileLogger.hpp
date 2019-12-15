@@ -18,7 +18,7 @@
 
 namespace avif::util {
 
-class FileLogger : public Logger {
+class FileLogger final : public Logger {
 private:
   FILE* const output_;
   FILE* const errorOutput_;
