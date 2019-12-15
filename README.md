@@ -18,7 +18,7 @@ MIT
    https://www.w3.org/TR/mse-byte-stream-format-isobmff/
  - avif.js/mov.js - Kagami/avif.js
    https://github.com/Kagami/avif.js/blob/500e3357e5d56750dbd4e40b3aee74b13207721e/mov.js
- - MP4のデータ構造 - Qiita
+ - MP4のデータ構造 - Qiita  
    https://qiita.com/daisukeoda/items/87f6b5e9427c3feeaabf
 
 ## AV1
@@ -27,7 +27,7 @@ MIT
  - AV1 Codec ISO Media File Format Binding  
    https://aomediacodec.github.io/av1-isobmff/
 
-## HEIF:
+## HEIF - MPEG-H Part 12 (ISO/IEC 23008-12)
  - nokiatech/heif: High Efficiency Image File Format  
    https://github.com/nokiatech/heif/
  - Text of ISO/IEC CD 23008-12 Image File Format | MPEG  
