@@ -2,7 +2,7 @@
 
 A library to manipulate avif container. It's for neither decoding nor encoding.
 
-Currently, it just supports **parsing** avif container. It is planned to support **writing** avif files.
+Currently, it just supports **parsing** avif container. However, it also is planned to support **writing** avif files (not yet...).
 
 # How to use
 
