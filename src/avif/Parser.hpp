@@ -17,6 +17,11 @@
 namespace avif {
 
 class Parser final {
+public:
+  struct Result {
+    std::vector<uint8_t> const buffer;
+
+  };
 private:
   util::Logger& log_;
   size_t pos_;
@@ -65,7 +70,7 @@ private:
   std::optional<std::string> parseItemPropertyContainer(ItemPropertyContainer &container);
   std::optional<std::string> parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer &container);
 
-  std::optional<std::string> parsePixelAspectRatioBox(PixelAspectRatioBox& box, const size_t end);
+  std::optional<std::string> parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   std::optional<std::string> parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   std::optional<std::string> parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
 

@@ -36,6 +36,8 @@ public:
       ,errorOutput_(errOutput)
   {
   }
+
+protected:
   void writeLog_(Level lv, std::string const& msg) override;
 };
 

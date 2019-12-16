@@ -48,6 +48,8 @@ MIT
    https://aomediacodec.github.io/av1-isobmff/
 
 ## HEIF - MPEG-H Part 12 (ISO/IEC 23008-12)
+ - HEIF Technical Information - High Efficiency Image File Format  
+   https://nokiatech.github.io/heif/technical.html
  - nokiatech/heif: High Efficiency Image File Format  
    https://github.com/nokiatech/heif/
  - Text of ISO/IEC CD 23008-12 Image File Format | MPEG  
