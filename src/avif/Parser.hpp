@@ -18,14 +18,47 @@ namespace avif {
 
 class Parser final {
 public:
-  struct Result {
-    std::vector<uint8_t> const buffer;
-
-  };
+  class Result final {
+    friend class Parser;
+    private:
+      std::vector<uint8_t> const buffer_;
+      std::variant<std::shared_ptr<const FileBox>, std::string> const result_;
+    public:
+      Result(std::vector<uint8_t> buffer, std::variant<std::shared_ptr<const FileBox>, std::string> result)
+      :buffer_(std::move(buffer))
+      ,result_(std::move(result))
+      {
+      }
+      ~Result() noexcept = default;
+      Result& operator=(Result const&) = delete;
+      Result& operator=(Result&&) = delete;
+      Result(Result const&) = delete;
+      Result(Result&&) = delete;
+    public:
+      [[ nodiscard ]] bool isSuccess() const { return std::holds_alternative<std::shared_ptr<const FileBox>>(this->result_); }
+      [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
+      [[ nodiscard ]] std::string error() const {
+        if (this->isSuccess()) {
+          return std::get<1>(this->result_);
+        } else {
+          return "";
+        }
+      }
+      [[ nodiscard ]] std::shared_ptr<const FileBox> fileBox() const {
+        if(this->isSuccess()) {
+          return std::get<0>(this->result_);
+        } else {
+          return std::shared_ptr<const FileBox>();
+        }
+      }
+    };
 private:
   util::Logger& log_;
+private: // intermediate states
   size_t pos_;
-  std::vector<uint8_t> const buffer_;
+  std::vector<uint8_t> buffer_;
+private: // parsed results
+  std::shared_ptr<FileBox> fileBox_;
 
 private: // internal operations
   uint8_t  readU8();
@@ -34,8 +67,8 @@ private: // internal operations
   uint64_t readU64();
   std::optional<uint64_t> readUint(size_t octets);
 
-private: // parsed results
-  std::shared_ptr<FileBox> fileBox_;
+private:
+  std::shared_ptr<Result> result_;
 
 public:
   Parser() = delete;
@@ -46,11 +79,10 @@ public:
 
 public: //entry point
   Parser(util::Logger& log, std::vector<uint8_t> buff);
-  std::variant<std::shared_ptr<FileBox>, std::string> parse();
+  std::shared_ptr<Result> parse();
 
 public: // getters
   [[nodiscard]] util::Logger& log() { return this->log_; }
-  [[nodiscard]] std::vector<uint8_t> const& buffer() { return this->buffer_; }
 
 private:
   void parseFullBoxHeader(FullBox& fullBox);

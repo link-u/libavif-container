@@ -103,13 +103,17 @@ Parser::Parser(util::Logger& log, std::vector<uint8_t> buff)
 {
 }
 
-std::variant<std::shared_ptr<FileBox>, std::string> Parser::parse() {
+std::shared_ptr<Parser::Result> Parser::parse() {
+  if(this->result_) {
+    return this->result_;
+  }
   std::optional<std::string> res = this->parseFile();
   if(res.has_value()){
-    return std::variant<std::shared_ptr<FileBox>, std::string>(res.value());
+    this->result_ = std::make_shared<Parser::Result>(std::move(this->buffer_), std::variant<std::shared_ptr<const FileBox>, std::string>(res.value()));
   } else {
-    return std::variant<std::shared_ptr<FileBox>, std::string>(fileBox_);
+    this->result_ = std::make_shared<Parser::Result>(std::move(this->buffer_), std::variant<std::shared_ptr<const FileBox>, std::string>(fileBox_));
   }
+  return this->result_;
 }
 
 std::optional<std::string> Parser::parseFile() {
