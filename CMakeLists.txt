@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(libavif-container)
 
-set(CMAKE_CXX_STANDARD 17)
-
-set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
-
 add_library(
         libavif-container
         # 3rd party
@@ -32,3 +28,6 @@ add_library(
         src/avif/ItemPropertyAssociation.hpp
         src/avif/AV1CodecConfigurationBox.hpp
 )
+
+set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
+set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
