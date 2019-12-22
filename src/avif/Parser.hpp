@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include <utility>
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -13,20 +14,52 @@
 #include "FullBox.hpp"
 #include "FileBox.hpp"
 #include "FileTypeBox.hpp"
+#include "../../external/tinyformat/tinyformat.h"
 
 namespace avif {
 
 class Parser final {
 public:
+  class Error final : std::exception {
+  private:
+    std::string msg_;
+  public:
+    template <typename ...Args>
+    explicit Error(std::string const& fmt, Args &&... args)
+    :std::exception()
+    ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...)){
+    }
+    explicit Error(std::exception const& err):std::exception(), msg_(tfm::format("[stdlib] %s", err.what())) {
+    }
+    explicit Error(std::string  msg):std::exception(), msg_(std::move(msg)) {
+    }
+    Error(Error&&) = default;
+    Error& operator=(Error&&) = default;
+    Error(Error const&) = default;
+    Error& operator=(Error const&) = default;
+    Error() = delete;
+    ~Error() noexcept override = default;
+    [[ nodiscard ]] const char* what() const noexcept override {
+      return this->msg_.c_str();
+    }
+    [[ nodiscard ]] std::string const& msg() const noexcept {
+      return this->msg_;
+    }
+  };
   class Result final {
     friend class Parser;
     private:
       std::vector<uint8_t> const buffer_;
-      std::variant<std::shared_ptr<const FileBox>, std::string> const result_;
+      std::variant<FileBox, Parser::Error> const result_;
     public:
-      Result(std::vector<uint8_t> buffer, std::variant<std::shared_ptr<const FileBox>, std::string> result)
+      Result(std::vector<uint8_t> buffer, FileBox&& fileBox)
       :buffer_(std::move(buffer))
-      ,result_(std::move(result))
+      ,result_(std::move(fileBox))
+      {
+      }
+      Result(std::vector<uint8_t> buffer, Parser::Error&& err)
+          :buffer_(std::move(buffer))
+          ,result_(std::move(err))
       {
       }
       ~Result() noexcept = default;
@@ -35,37 +68,47 @@ public:
       Result(Result const&) = delete;
       Result(Result&&) = delete;
     public:
-      [[ nodiscard ]] bool isSuccess() const { return std::holds_alternative<std::shared_ptr<const FileBox>>(this->result_); }
+      [[ nodiscard ]] bool ok() const { return std::holds_alternative<FileBox>(this->result_); }
       [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
       [[ nodiscard ]] std::string error() const {
-        if (this->isSuccess()) {
-          return std::get<1>(this->result_);
+        if (this->ok()) {
+          return std::get<Parser::Error>(this->result_).msg();
         } else {
-          return "";
+          return "<no-error>";
         }
       }
-      [[ nodiscard ]] std::shared_ptr<const FileBox> fileBox() const {
-        if(this->isSuccess()) {
-          return std::get<0>(this->result_);
+      [[ nodiscard ]] FileBox const& fileBox() const {
+        if(this->ok()) {
+          return std::get<FileBox>(this->result_);
         } else {
-          return std::shared_ptr<const FileBox>();
+          throw std::domain_error(tfm::format("ParseResult is error: %s", error()));
         }
       }
     };
+
+private:
+  struct BoxHeader {
+    size_t beg;
+    size_t end;
+    uint32_t size;
+    uint32_t type;
+  };
 private:
   util::Logger& log_;
 private: // intermediate states
   size_t pos_;
   std::vector<uint8_t> buffer_;
 private: // parsed results
-  std::shared_ptr<FileBox> fileBox_;
+  FileBox fileBox_;
 
 private: // internal operations
+  BoxHeader readBoxHeader();
   uint8_t  readU8();
   uint16_t readU16();
   uint32_t readU32();
   uint64_t readU64();
   std::optional<uint64_t> readUint(size_t octets);
+  std::string readString();
 
 private:
   std::shared_ptr<Result> result_;
@@ -86,31 +129,32 @@ public: // getters
 
 private:
   void parseFullBoxHeader(FullBox& fullBox);
+  void warningUnknownBox(Parser::BoxHeader const& hdr);
 
 private:
-  std::optional<std::string> parseFile();
-  std::optional<std::string> parseBoxInFile();
-  std::optional<std::string> parseFileTypeBox(FileTypeBox& box, size_t end);
+  void parseFile();
+  void parseBoxInFile();
+  void parseFileTypeBox(FileTypeBox& box, size_t end);
 
-  std::optional<std::string> parseMetaBox(MetaBox& box, size_t end);
-  std::optional<std::string> parseBoxInMeta(MetaBox& box, size_t endOfBox);
+  void parseMetaBox(MetaBox& box, size_t end);
+  void parseBoxInMeta(MetaBox& box, size_t endOfBox);
 
-  std::optional<std::string> parseHandlerBox(HandlerBox& box, size_t end);
+  void parseHandlerBox(HandlerBox& box, size_t end);
 
-  std::optional<std::string> parseItemPropertiesBox(ItemPropertiesBox& box, size_t end);
+  void parseItemPropertiesBox(ItemPropertiesBox& box, size_t end);
 
-  std::optional<std::string> parseItemPropertyContainer(ItemPropertyContainer &container);
-  std::optional<std::string> parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer &container);
+  void parseItemPropertyContainer(ItemPropertyContainer &container);
+  void parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer &container);
 
-  std::optional<std::string> parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
-  std::optional<std::string> parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
-  std::optional<std::string> parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
+  void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
+  void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
+  void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
 
-  std::optional<std::string> parseItemLocationBox(ItemLocationBox& box, size_t end);
+  void parseItemLocationBox(ItemLocationBox& box, size_t end);
 
-  std::optional<std::string> parseMediaDataBox(MediaDataBox& box, size_t end);
+  void parseMediaDataBox(MediaDataBox& box, size_t end);
 
-  std::optional<std::string> parseItemPropertyAssociation(ItemPropertyAssociation &assoc);
+  void parseItemPropertyAssociation(ItemPropertyAssociation &assoc);
 };
 
 }
