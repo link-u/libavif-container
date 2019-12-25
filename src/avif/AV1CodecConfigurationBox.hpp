@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include "Box.hpp"
 
 namespace avif {
@@ -16,13 +17,16 @@ struct AV1CodecConfigurationRecord {
   uint8_t seqLevelIdx0;
   uint8_t seqTier0;
   bool highBitDepth;
+  bool twelveBit;
   bool monochrome;
-  bool chromaSubsamplingX;
-  bool chromaSubsamplingY;
-  bool chromaSamplePosition;
+  uint8_t chromaSubsamplingX;
+  uint8_t chromaSubsamplingY;
+  uint8_t chromaSamplePosition;
 
   bool initialPresentationDelayPresent;
-  uint8_t initialPresentationDelayMinusOne;
+  uint8_t initialPresentationDelay;
+
+  std::vector<uint8_t> configOBUs;
 };
 
 struct AV1CodecConfigurationRecordBox : public Box {

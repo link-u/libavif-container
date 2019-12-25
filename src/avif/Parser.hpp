@@ -148,6 +148,7 @@ private:
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
+  void parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t end);
 
   void parseItemInfoBox(ItemInfoBox& box, size_t end);
   void parseItemInfoEntry(ItemInfoEntry& box, size_t end);
@@ -157,6 +158,7 @@ private:
   void parseMediaDataBox(MediaDataBox& box, size_t end);
 
   void parseItemPropertyAssociation(ItemPropertyAssociation &assoc);
+
 };
 
 }

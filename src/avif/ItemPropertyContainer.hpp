@@ -8,6 +8,7 @@
 #include "PixelAspectRatioBox.hpp"
 #include "ImageSpatialExtentsProperty.hpp"
 #include "PixelInformationProperty.hpp"
+#include "AV1CodecConfigurationBox.hpp"
 
 namespace avif {
 
@@ -19,6 +20,7 @@ struct ItemPropertyContainer : public Box {
   std::tuple<uint8_t, PixelAspectRatioBox> pixelAspectRatioBox;
   std::tuple<uint8_t, ImageSpatialExtentsProperty> imageSpatialExtentsProperty;
   std::tuple<uint8_t, PixelInformationProperty> pixelInformationProperty;
+  std::tuple<uint8_t, AV1CodecConfigurationRecordBox> av1CodecConfigurationRecordBox;
 };
 
 }

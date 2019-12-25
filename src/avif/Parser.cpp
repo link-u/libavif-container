@@ -329,7 +329,8 @@ void Parser::parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer& 
       break;
     case boxType("av1C"):
       // https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
-      // TODO: parse.
+      std::get<0>(container.av1CodecConfigurationRecordBox) = id;
+      this->parseAV1CodecConfigurationRecordBox(std::get<1>(container.av1CodecConfigurationRecordBox), hdr.end);
       break;
     case boxType("free"):
     case boxType("skip"):
@@ -344,27 +345,55 @@ void Parser::parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer& 
   this->pos_ = hdr.end;
 }
 
-void Parser::parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end) {
+void Parser::parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t const end) {
   // 12.1.4 Pixel Aspect Ratio and Clean Aperture
   // See: ISOBMFF p.170
   box.hSpacing = readU32();
   box.vSpacing = readU32();
 }
 
-void Parser::parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty& prop, size_t end) {
+void Parser::parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty& prop, size_t const end) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/pixelinformationproperty.cpp
   parseFullBoxHeader(prop);
   prop.imageWidth = readU32();
   prop.imageHeight = readU32();
 }
 
-void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_t end) {
+void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_t const end) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/pixelinformationproperty.cpp
   parseFullBoxHeader(prop);
   prop.numChannels = readU8();
   for(uint8_t i =0; i < prop.numChannels; ++i) {
     prop.bitsPerChannel.emplace_back(readU8());
   }
+}
+
+
+void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t const end) {
+  AV1CodecConfigurationRecord& conf = box.av1Config;
+  uint8_t tmp = readU8();
+  conf.marker = (tmp & 0x80u) == 0x80u;
+  conf.version = tmp & 0x7fu;
+  tmp = readU8();
+  conf.seqProfile = static_cast<uint8_t>(tmp >> 5u) & 0x7u;
+  conf.seqLevelIdx0 = tmp & 31u;
+  tmp = readU8();
+  conf.seqTier0 =             static_cast<uint8_t>(tmp >> 7u) & 1u;
+  conf.highBitDepth =         (tmp & (1u << 6u)) == (1u << 6u);
+  conf.twelveBit =            (tmp & (1u << 5u)) == (1u << 5u);
+  conf.monochrome =           (tmp & (1u << 4u)) == (1u << 4u);
+  conf.chromaSubsamplingX =   static_cast<uint8_t>(tmp >> 3u) & 1u;
+  conf.chromaSubsamplingY =   static_cast<uint8_t>(tmp >> 2u) & 1u;
+  conf.chromaSamplePosition = tmp & 3u;
+  tmp = readU8();
+  tmp = tmp & 31u; // unsigned int (3) reserved = 0;
+  conf.initialPresentationDelayPresent = (tmp & (1u << 4u)) == (1u << 4u);
+  if(conf.initialPresentationDelayPresent) {
+    conf.initialPresentationDelay = (tmp & 15u) + 1u;
+  } else {
+    conf.initialPresentationDelay = 0;
+  }
+  conf.configOBUs = std::vector<uint8_t>(std::next(this->buffer_.begin(), this->pos_), std::next(this->buffer_.begin(), end));
 }
 
 void Parser::parseItemPropertyAssociation(ItemPropertyAssociation& assoc) {
