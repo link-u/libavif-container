@@ -9,7 +9,7 @@
 namespace avif{
 
 struct FullBox : public Box {
-protected:
+public:
   FullBox() = default;
   FullBox(FullBox&&) = default;
   FullBox(FullBox const&) = default;

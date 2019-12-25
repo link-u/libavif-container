@@ -143,7 +143,7 @@ private:
   void parseItemPropertiesBox(ItemPropertiesBox& box, size_t end);
 
   void parseItemPropertyContainer(ItemPropertyContainer &container);
-  void parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer &container);
+  void parseBoxInItemPropertyContainer(ItemPropertyContainer &container);
 
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);

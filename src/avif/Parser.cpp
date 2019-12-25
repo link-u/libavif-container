@@ -288,9 +288,9 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
   while(this->pos_ < end) {
     BoxHeader const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipma")) {
-      throw Error("ItemPropertyAssociation expected, got %s", uint2str(hdr.type));
+      throw Error("ItemPropertyAssociation(ipma) expected, got %s", uint2str(hdr.type));
     }
-    ItemPropertyAssociation itemPropertyAssociation;
+    ItemPropertyAssociation itemPropertyAssociation{};
     this->parseItemPropertyAssociation(itemPropertyAssociation);
     box.itemPropertyAssociations.emplace_back(itemPropertyAssociation);
     this->pos_ = hdr.end;
@@ -303,35 +303,40 @@ void Parser::parseItemPropertyContainer(ItemPropertyContainer& container) {
   if(hdr.type != str2uint("ipco")) {
     throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
   }
-  uint8_t id = 0;
   while(this->pos_ < hdr.end) {
-    this->parseBoxInItemPropertyContainer(id, container);
-    id++;
+    this->parseBoxInItemPropertyContainer(container);
   }
   this->pos_ = hdr.end;
 }
 
-void Parser::parseBoxInItemPropertyContainer(uint8_t id, ItemPropertyContainer& container) {
+void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
   BoxHeader const hdr = readBoxHeader();
   switch(hdr.type) {
-    case boxType("pasp"):
-      std::get<0>(container.pixelAspectRatioBox) = id;
-      this->parsePixelAspectRatioBox(std::get<1>(container.pixelAspectRatioBox), hdr.end);
+    case boxType("pasp"): {
+      PixelAspectRatioBox box{};
+      this->parsePixelAspectRatioBox(box, hdr.end);
+      container.properties.emplace_back(box);
       break;
-    case boxType("ispe"):
-      std::get<0>(container.imageSpatialExtentsProperty) = id;
-      this->parseImageSpatialExtentsProperty(std::get<1>(container.imageSpatialExtentsProperty), hdr.end);
+    }
+    case boxType("ispe"): {
+      ImageSpatialExtentsProperty box{};
+      this->parseImageSpatialExtentsProperty(box, hdr.end);
+      container.properties.emplace_back(box);
       break;
-    case boxType("pixi"):
-      std::get<0>(container.pixelInformationProperty) = id;
-      this->parsePixelInformationProperty(std::get<1>(container.pixelInformationProperty), hdr.end);
+    }
+    case boxType("pixi"): {
+      PixelInformationProperty box{};
+      this->parsePixelInformationProperty(box, hdr.end);
+      container.properties.emplace_back(box);
       break;
-    case boxType("av1C"):
-      // https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
-      std::get<0>(container.av1CodecConfigurationRecordBox) = id;
-      this->parseAV1CodecConfigurationRecordBox(std::get<1>(container.av1CodecConfigurationRecordBox), hdr.end);
+    }
+    case boxType("av1C"): {
+      AV1CodecConfigurationRecordBox box{};
+      this->parseAV1CodecConfigurationRecordBox(box, hdr.end);
+      container.properties.emplace_back(box);
       break;
+    }
     case boxType("free"):
     case boxType("skip"):
       // ISO/IEC 14496-12:2015(E)
@@ -370,7 +375,8 @@ void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_
 
 
 void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t const end) {
-  AV1CodecConfigurationRecord& conf = box.av1Config;
+// https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
+ AV1CodecConfigurationRecord& conf = box.av1Config;
   uint8_t tmp = readU8();
   conf.marker = (tmp & 0x80u) == 0x80u;
   conf.version = tmp & 0x7fu;

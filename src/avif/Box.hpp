@@ -10,7 +10,7 @@
 namespace avif {
 
 struct Box {
-protected:
+public:
   Box() = default;
   Box(Box&&) = default;
   Box(Box const&) = default;
