@@ -47,7 +47,6 @@ public:
     }
   };
   class Result final {
-    friend class Parser;
     private:
       std::vector<uint8_t> const buffer_;
       std::variant<FileBox, Parser::Error> const result_;
@@ -72,9 +71,9 @@ public:
       [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
       [[ nodiscard ]] std::string error() const {
         if (this->ok()) {
-          return std::get<Parser::Error>(this->result_).msg();
-        } else {
           return "<no-error>";
+        } else {
+          return std::get<Parser::Error>(this->result_).msg();
         }
       }
       [[ nodiscard ]] FileBox const& fileBox() const {
@@ -149,6 +148,9 @@ private:
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
+
+  void parseItemInfoBox(ItemInfoBox& box, size_t end);
+  void parseItemInfoEntry(ItemInfoEntry& box, size_t end);
 
   void parseItemLocationBox(ItemLocationBox& box, size_t end);
 

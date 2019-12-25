@@ -12,6 +12,7 @@
 namespace avif {
 
 struct HandlerBox : public FullBox {
+  std::string name;
   std::string handler;
 };
 

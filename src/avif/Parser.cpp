@@ -13,6 +13,7 @@
 #include "FileBox.hpp"
 #include "ItemPropertiesBox.hpp"
 #include "ItemPropertyContainer.hpp"
+#include "ItemInfoExtension.hpp"
 
 namespace {
 constexpr uint32_t str2uint(const char str[4]) {
@@ -92,20 +93,19 @@ std::optional<uint64_t> Parser::readUint(size_t octets) {
 
 Parser::BoxHeader Parser::readBoxHeader() {
   Parser::BoxHeader hdr{};
+  hdr.beg = this->pos_;
   hdr.size = readU32();
   hdr.type = readU32();
-
-  hdr.beg = this->pos_;
   if(hdr.size == 1) {
     throw Error("LargeSize box is not supported.");
   }
-  if(hdr.size == 0){
+  if(hdr.size == 0) {
     hdr.end = this->buffer_.size();
   } else {
-    hdr.end = hdr.beg - 8 + hdr.size;
+    hdr.end = hdr.beg + hdr.size;
   }
   if(hdr.end > this->buffer_.size()) {
-    throw Error("File corrupted.");
+    throw Error("File corrupted. Detected at %s box, from %d to %d, but buffer.size = %d.", uint2str(hdr.type), hdr.beg, hdr.end, this->buffer_.size());
   }
   return hdr;
 }
@@ -124,7 +124,7 @@ std::string Parser::readString() {
     this->pos_ = end + 1;
     return std::string(std::next(this->buffer_.begin(), beg), std::next(this->buffer_.begin(), end));
   } else {
-    throw Error("File corrupted.");
+    throw Error("Filed to read string. File may be corrupted?");
   }
 }
 
@@ -238,8 +238,7 @@ void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
     case boxType("iinf"):
       // 8.11.6 Item Information Box
       // See: ISOBMFF p.95
-      // TODO: parse
-      //this->parseItemInformationBox(box.itemInformationBox);
+      this->parseItemInfoBox(box.itemInfoBox, hdr.end);
       break;
     case boxType("iloc"):
       // 8.11.3 The Item Location Box
@@ -264,7 +263,7 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
   readU32(); // reserved
   readU32(); // reserved
   readU32(); // reserved
-  std::string name(std::next(this->buffer_.begin(), this->pos_), std::next(this->buffer_.begin(), end));
+  box.name = readString();
   switch(handlerType) {
     case str2uint("pict"):
       // よくわからんが、これで正しいらしい
@@ -394,6 +393,81 @@ void Parser::parseItemPropertyAssociation(ItemPropertyAssociation& assoc) {
       item.entries.emplace_back(entry);
     }
     assoc.items.emplace_back(item);
+  }
+}
+
+void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
+  // 8.11.6 Item Information Box
+  // See: ISOBMFF p.95
+  this->parseFullBoxHeader(box);
+  uint32_t entryCount;
+  if(box.version() == 0){
+    entryCount = readU16();
+  } else {
+    entryCount = readU32();
+  }
+  for(uint32_t i = 0; i < entryCount; ++i) {
+    BoxHeader hdr = readBoxHeader();
+    if(hdr.type != str2uint("infe")) {
+      throw Error("'infe' expected, got %s", uint2str(hdr.type));
+    }
+    ItemInfoEntry entry;
+    this->parseItemInfoEntry(entry, hdr.end);
+    this->pos_ = hdr.end;
+  }
+}
+
+void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
+  parseFullBoxHeader(box);
+  if(box.version() == 0 || box.version() == 1) {
+    box.itemID = readU16();
+    box.itemProtectionIndex = readU16();
+    box.itemName = readString();
+    box.contentType = readString();
+    box.contentEncoding = std::make_optional<std::string>(readString());
+  }
+  if(box.version() == 1) {
+    uint32_t const extensionType = readU32();
+    switch (extensionType) {
+    case str2uint("fdel"): {
+      FDItemInfoExtension ext;
+      ext.extensionType = extensionType;
+      ext.contentLocation = readString();
+      ext.contentLength = readU64();
+      ext.transferLength = readU64();
+      uint8_t entryCount = readU8();
+      for(uint8_t i = 0; i < entryCount; ++i) {
+        ext.groupIDs.emplace_back(readU8());
+      }
+      break;
+    }
+      default:
+        throw Error("Unknwon ItemInfoExtension with type = %s", uint2str(extensionType));
+    }
+  }
+  if(box.version() >= 2) {
+    if (box.version() == 2) {
+      box.itemID = readU16();
+    } else if(box.version() == 3) {
+      box.itemID = readU32();
+    } else {
+      throw Error("ItemInfoEntry with version=%d not supported.", box.version());
+    }
+    box.itemProtectionIndex = readU16();
+    uint32_t const itemType = readU32();
+    box.itemType = std::make_optional<uint32_t>(itemType);
+    box.itemName = readString();
+    switch(itemType) {
+      case str2uint("mime"):
+        box.contentType = readString();
+        box.contentEncoding = std::make_optional<std::string>(readString());
+        break;
+      case str2uint("uri "):
+        box.itemURIType = std::make_optional<std::string>(readString());
+        break;
+      default:
+        break;
+    }
   }
 }
 
