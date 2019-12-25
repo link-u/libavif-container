@@ -438,7 +438,7 @@ void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
   for(uint32_t i = 0; i < entryCount; ++i) {
     BoxHeader hdr = readBoxHeader();
     if(hdr.type != str2uint("infe")) {
-      throw Error("'infe' expected, got %s", uint2str(hdr.type));
+      throw Error("'infe' expected in ItemInfoBox, got %s", uint2str(hdr.type));
     }
     ItemInfoEntry entry;
     this->parseItemInfoEntry(entry, hdr.end);
