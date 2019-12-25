@@ -172,6 +172,7 @@ void Parser::parseBoxInFile() {
     case boxType("ftyp"):
       // ISO/IEC 14496-12:2015(E)
       // 4.3 File Type Box
+      // Quantity: Exactly one (but see below)
       this->parseFileTypeBox(box.fileTypeBox, hdr.end);
       break;
     case boxType("free"):
@@ -180,15 +181,22 @@ void Parser::parseBoxInFile() {
       // 8.1.2
       // free_type may be ‘free’ or ‘skip’.
       break;
-    case boxType("meta"):
+    case boxType("meta"): {
       // ISO/IEC 14496-12:2015(E)
       // 8.11.1
-      // free_type may be ‘free’ or ‘skip’.
+      // Quantity: Zero or one (in File, ‘moov’, and ‘trak’), One or more (in ‘meco’)
       this->parseMetaBox(box.metaBox, hdr.end);
       break;
-    case boxType("mdat"):
-      this->parseMediaDataBox(box.mediaDataBox, hdr.end);
+    }
+    case boxType("mdat"): {
+      // ISO/IEC 14496-12:2015(E)
+      // 8.1.1. Media Data Box
+      // Quantity: Zero or more
+      MediaDataBox mediaDataBox{};
+      this->parseMediaDataBox(mediaDataBox, hdr.end);
+      box.mediaDataBoxes.emplace_back(mediaDataBox);
       break;
+    }
     default:
       warningUnknownBox(hdr);
       break;
