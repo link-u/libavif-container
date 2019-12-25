@@ -439,6 +439,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
       for(uint8_t i = 0; i < entryCount; ++i) {
         ext.groupIDs.emplace_back(readU8());
       }
+      std::get<FDItemInfoExtension>(box.itemInfoExtension) = std::move(ext);
       break;
     }
       default:
@@ -457,7 +458,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
     uint32_t const itemType = readU32();
     box.itemType = std::make_optional<uint32_t>(itemType);
     box.itemName = readString();
-    switch(itemType) {
+    switch(itemType) { // There may be additional data in particular cases.
       case str2uint("mime"):
         box.contentType = readString();
         box.contentEncoding = std::make_optional<std::string>(readString());
