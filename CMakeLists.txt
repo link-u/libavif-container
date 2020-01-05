@@ -27,7 +27,12 @@ add_library(
         src/avif/PixelInformationProperty.hpp
         src/avif/ItemPropertyAssociation.hpp
         src/avif/AV1CodecConfigurationBox.hpp
-        src/avif/ItemInfoBox.hpp src/avif/ItemInfoEntry.hpp src/avif/ItemInfoExtension.hpp)
+        src/avif/ItemInfoBox.hpp
+        src/avif/ItemInfoEntry.hpp
+        src/avif/ItemInfoExtension.hpp
+        src/avif/util/StreamReader.cpp
+        src/avif/util/StreamReader.hpp
+)
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
