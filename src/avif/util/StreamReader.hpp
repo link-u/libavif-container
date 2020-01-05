@@ -32,6 +32,16 @@ public:
   void seek(size_t pos) {
     this->pos_ = pos;
   }
+
+public:
+  [[nodiscard]] uint8_t  readU8();
+  [[nodiscard]] uint16_t readU16();
+  [[nodiscard]] uint32_t readU32();
+  [[nodiscard]] uint64_t readU64();
+  [[nodiscard]] std::optional<uint64_t> readUint(size_t octets);
+  [[nodiscard]] std::string readString();
+  [[nodiscard]] bool consumed() const { return this->pos_ >= this->buffer_.size(); };
+
 };
 
 }

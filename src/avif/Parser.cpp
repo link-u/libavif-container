@@ -36,64 +36,9 @@ std::string uint2str(uint32_t const code) {
 
 namespace avif {
 
-uint8_t Parser::readU8() {
-  uint8_t res = this->buffer_.at(pos_);
-  pos_++;
-  return res;
-}
-
-uint16_t Parser::readU16() {
-  uint16_t res =
-      static_cast<uint16_t>(static_cast<uint16_t>(buffer_.at(pos_)) << 8u) |
-      static_cast<uint16_t>(static_cast<uint16_t>(this->buffer_.at(pos_ + 1)) << 0u);
-  pos_+=2;
-  return res;
-}
-
-uint32_t Parser::readU32() {
-  uint32_t res =
-      static_cast<uint32_t>(buffer_.at(pos_ + 0)) << 24u |
-      static_cast<uint32_t>(buffer_.at(pos_ + 1)) << 16u |
-      static_cast<uint32_t>(buffer_.at(pos_ + 2)) << 8u |
-      static_cast<uint32_t>(buffer_.at(pos_ + 3)) << 0u;
-  pos_+=4;
-  return res;
-}
-
-uint64_t Parser::readU64() {
-  uint64_t res =
-      static_cast<uint64_t>(buffer_.at(pos_ + 0)) << 56u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 1)) << 48u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 2)) << 40u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 3)) << 32u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 4)) << 24u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 5)) << 16u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 6)) << 8u |
-      static_cast<uint64_t>(buffer_.at(pos_ + 7)) << 0u;
-  pos_+=8;
-  return res;
-}
-
-std::optional<uint64_t> Parser::readUint(size_t octets) {
-  switch(octets){
-    case 0:
-      return std::make_optional(0);
-    case 1:
-      return std::make_optional(readU8());
-    case 2:
-      return std::make_optional(readU16());
-    case 4:
-      return std::make_optional(readU32());
-    case 8:
-      return std::make_optional(readU64());
-    default:
-      return std::optional<uint64_t>();
-  }
-}
-
 Parser::BoxHeader Parser::readBoxHeader() {
   Parser::BoxHeader hdr{};
-  hdr.beg = this->pos_;
+  hdr.beg = this->pos();
   hdr.size = readU32();
   hdr.type = readU32();
   if(hdr.size == 1) {
@@ -110,24 +55,6 @@ Parser::BoxHeader Parser::readBoxHeader() {
   return hdr;
 }
 
-std::string Parser::readString() {
-  size_t const beg = this->pos_;
-  size_t end = beg;
-  bool found = false;
-  for(; end < this->buffer_.size(); ++end) {
-    if(this->buffer_.at(end) == '\0') {
-      found = true;
-      break;
-    }
-  }
-  if(found) {
-    this->pos_ = end + 1;
-    return std::string(std::next(this->buffer_.begin(), beg), std::next(this->buffer_.begin(), end));
-  } else {
-    throw Error("Filed to read string. File may be corrupted?");
-  }
-}
-
 //-----------------------------------------------------------------------------
 constexpr uint32_t boxType(const char *str) {
   return str2uint(str);
@@ -135,10 +62,10 @@ constexpr uint32_t boxType(const char *str) {
 //-----------------------------------------------------------------------------
 
 Parser::Parser(util::Logger& log, std::vector<uint8_t> buff)
-: log_(log)
-, pos_(0)
-, buffer_(std::move(buff))
-, fileBox_()
+:log_(log)
+,buffer_(std::move(buff))
+,reader_(log, buffer_)
+,fileBox_()
 {
 }
 
@@ -160,7 +87,7 @@ std::shared_ptr<Parser::Result> Parser::parse() {
 }
 
 void Parser::parseFile() {
-  while(this->pos_ < this->buffer_.size()) {
+  while(!this->consumed()) {
     this->parseBoxInFile();
   }
 }
@@ -201,7 +128,7 @@ void Parser::parseBoxInFile() {
       warningUnknownBox(hdr);
       break;
   }
-  this->pos_ = hdr.end;
+  this->seek(hdr.end);
 }
 
 void Parser::parseFileTypeBox(FileTypeBox& box, size_t const end) {
@@ -214,7 +141,7 @@ void Parser::parseFileTypeBox(FileTypeBox& box, size_t const end) {
     throw Error("We currently just support version 0(!=%d)", minorVersion);
   }
   std::vector<std::string> compatibleBrands;
-  while(this->pos_ < end) {
+  while(this->pos() < end) {
     uint32_t const compatBrand = readU32();
     compatibleBrands.emplace_back(uint2str(compatBrand));
   }
@@ -228,7 +155,7 @@ void Parser::parseMetaBox(MetaBox& box, size_t const end) {
   // MetaBox extends FullBox.
   // See: ISOBMFF p.21
   this->parseFullBoxHeader(box);
-  while(this->pos_ < end) {
+  while(this->pos() < end) {
     this->parseBoxInMeta(box, end);
   }
 }
@@ -257,7 +184,7 @@ void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
       warningUnknownBox(hdr);
       break;
   }
-  this->pos_ = hdr.end;
+  this->seek(hdr.end);
 }
 
 void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
@@ -266,11 +193,12 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
   this->parseFullBoxHeader(box);
 
   // ISOBMFF p.44 8.4.3.2
-  readU32(); // pre_defined = 0
+  uint32_t reserved;
+  reserved = readU32(); // pre_defined = 0
   uint32_t const handlerType = readU32();
-  readU32(); // reserved
-  readU32(); // reserved
-  readU32(); // reserved
+  reserved = readU32(); // reserved
+  reserved = readU32(); // reserved
+  reserved = readU32(); // reserved
   box.name = readString();
   switch(handlerType) {
     case str2uint("pict"):
@@ -293,7 +221,7 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertiesbox.cpp
   this->parseItemPropertyContainer(box.itemPropertyContainer);
   // read "ipma"s
-  while(this->pos_ < end) {
+  while(this->pos() < end) {
     BoxHeader const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipma")) {
       throw Error("ItemPropertyAssociation(ipma) expected, got %s", uint2str(hdr.type));
@@ -301,7 +229,7 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
     ItemPropertyAssociation itemPropertyAssociation{};
     this->parseItemPropertyAssociation(itemPropertyAssociation);
     box.itemPropertyAssociations.emplace_back(itemPropertyAssociation);
-    this->pos_ = hdr.end;
+    this->seek(hdr.end);
   }
 }
 
@@ -311,10 +239,10 @@ void Parser::parseItemPropertyContainer(ItemPropertyContainer& container) {
   if(hdr.type != str2uint("ipco")) {
     throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
   }
-  while(this->pos_ < hdr.end) {
+  while(this->pos() < hdr.end) {
     this->parseBoxInItemPropertyContainer(container);
   }
-  this->pos_ = hdr.end;
+  this->seek(hdr.end);
 }
 
 void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
@@ -355,7 +283,7 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       warningUnknownBox(hdr);
       break;
   }
-  this->pos_ = hdr.end;
+  this->seek(hdr.end);
 }
 
 void Parser::parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t const end) {
@@ -407,7 +335,7 @@ void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox&
   } else {
     conf.initialPresentationDelay = 0;
   }
-  conf.configOBUs = std::vector<uint8_t>(std::next(this->buffer_.begin(), this->pos_), std::next(this->buffer_.begin(), end));
+  conf.configOBUs = std::vector<uint8_t>(std::next(this->buffer_.begin(), this->pos()), std::next(this->buffer_.begin(), end));
 }
 
 void Parser::parseItemPropertyAssociation(ItemPropertyAssociation& assoc) {
@@ -456,7 +384,7 @@ void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
     }
     ItemInfoEntry entry;
     this->parseItemInfoEntry(entry, hdr.end);
-    this->pos_ = hdr.end;
+    this->seek(hdr.end);
   }
 }
 
@@ -576,7 +504,7 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
 }
 
 void Parser::parseMediaDataBox(MediaDataBox& box, size_t const end) {
-  box.beg = this->pos_;
+  box.beg = this->pos();
   box.end = end;
 }
 

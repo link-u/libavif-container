@@ -10,6 +10,7 @@
 #include <variant>
 #include <string>
 #include "util/Logger.hpp"
+#include "util/StreamReader.hpp"
 #include "Box.hpp"
 #include "FullBox.hpp"
 #include "FileBox.hpp"
@@ -95,19 +96,13 @@ private:
 private:
   util::Logger& log_;
 private: // intermediate states
-  size_t pos_;
   std::vector<uint8_t> buffer_;
+  util::StreamReader reader_;
 private: // parsed results
   FileBox fileBox_;
 
 private: // internal operations
   BoxHeader readBoxHeader();
-  uint8_t  readU8();
-  uint16_t readU16();
-  uint32_t readU32();
-  uint64_t readU64();
-  std::optional<uint64_t> readUint(size_t octets);
-  std::string readString();
 
 private:
   std::shared_ptr<Result> result_;
@@ -125,6 +120,17 @@ public: //entry point
 
 public: // getters
   [[nodiscard]] util::Logger& log() { return this->log_; }
+
+private:
+  [[nodiscard]] size_t pos() { return this->reader_.pos(); }
+  void seek(size_t pos) { this->reader_.seek(pos); }
+  [[nodiscard]] bool consumed() { return this->reader_.consumed(); }
+  [[nodiscard]] uint8_t  readU8() { return this->reader_.readU8(); }
+  [[nodiscard]] uint16_t readU16() { return this->reader_.readU16(); }
+  [[nodiscard]] uint32_t readU32() { return this->reader_.readU32(); }
+  [[nodiscard]] uint64_t readU64() { return this->reader_.readU64(); }
+  [[nodiscard]] std::optional<uint64_t> readUint(size_t const octets) { return this->reader_.readUint(octets); }
+  [[nodiscard]] std::string readString() { return this->reader_.readString(); }
 
 private:
   void parseFullBoxHeader(FullBox& fullBox);
