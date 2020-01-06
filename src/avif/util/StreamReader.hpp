@@ -23,7 +23,10 @@ public:
   StreamReader& operator=(StreamReader&&) = delete;
   explicit StreamReader(util::Logger& log, std::vector<uint8_t> const& buffer)
   :log_(log)
-  ,buffer_(buffer){}
+  ,buffer_(buffer)
+  ,pos_(0)
+  {
+  }
   ~StreamReader() noexcept = default;
 
 public:
@@ -41,7 +44,6 @@ public:
   [[nodiscard]] std::optional<uint64_t> readUint(size_t octets);
   [[nodiscard]] std::string readString();
   [[nodiscard]] bool consumed() const { return this->pos_ >= this->buffer_.size(); };
-
 };
 
 }

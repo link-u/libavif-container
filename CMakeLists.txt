@@ -10,8 +10,11 @@ add_library(
         src/avif/util/Logger.cpp
         src/avif/util/FileLogger.cpp
         src/avif/util/FileLogger.hpp
-        src/avif/Parser.cpp
-        src/avif/Parser.hpp
+        src/avif/util/StreamReader.cpp
+        src/avif/util/StreamReader.hpp
+        src/avif/util/StreamWriter.cpp
+        src/avif/util/StreamWriter.cpp
+
         src/avif/Box.hpp
         src/avif/FullBox.hpp
         src/avif/FileBox.hpp
@@ -30,8 +33,17 @@ add_library(
         src/avif/ItemInfoBox.hpp
         src/avif/ItemInfoEntry.hpp
         src/avif/ItemInfoExtension.hpp
-        src/avif/util/StreamReader.cpp
-        src/avif/util/StreamReader.hpp
+
+        src/avif/Parser.cpp
+        src/avif/Parser.hpp
+
+        src/avif/av1/Header.hpp
+        src/avif/av1/SequenceHeader.hpp
+        src/avif/av1/TemporalDelimiter.hpp
+        src/avif/av1/Padding.hpp
+
+        src/avif/av1/Parser.cpp
+        src/avif/av1/Parser.hpp
 )
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)

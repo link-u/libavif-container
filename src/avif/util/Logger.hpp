@@ -65,8 +65,9 @@ public:
   }
 
   template<typename ...Args>
-  void fatal(std::string const &fmt, Args &&...args) {
-    this->log_(Level::FATAL, fmt, std::forward<Args>(args)...);
+  [[ noreturn ]] void fatal(std::string const &fmt, Args &&...args) {
+    std::string msg = this->log_(Level::FATAL, fmt, std::forward<Args>(args)...);
+    throw std::runtime_error(msg);
   }
 
   void setLevel(const Level level) {
@@ -75,9 +76,9 @@ public:
 
 private:
   template<typename ...Args>
-  void log_(Level const level, std::string const &fmt, Args &&...args) {
+  std::string log_(Level const level, std::string const &fmt, Args &&...args) {
     if (level_ > level) {
-      return;
+      return "";
     }
     std::string const msg = tfm::format(fmt.c_str(), std::forward<Args>(args)...);
     time_t t = time(nullptr);
@@ -106,9 +107,7 @@ private:
         output = tfm::format("[%s FATAL] %s", time, msg);
     }
     this->writeLog_(level, output);
-    if(level == Level::FATAL) {
-      throw std::runtime_error(msg);
-    }
+    return std::move(msg);
   }
   virtual void writeLog_(Level lv, std::string const& msg) = 0;
 };
