@@ -18,7 +18,19 @@ Parser::Parser(util::Logger& log, std::vector<uint8_t> buffer)
   this->bitsLeft_  = 8;
 }
 
-std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> Parser::parse() {
+Parser::Result Parser::parse() {
+  std::vector<Parser::Result::Packet> packets;
+  while(!this->reader_.consumed()) {
+    std::optional<Parser::Result::Packet> packet = this->parsePacket();
+    if (packet.has_value()) {
+      packets.emplace_back(std::move(packet.value()));
+    }
+  }
+  return Result(std::move(this->buffer_), std::move(packets));
+}
+
+std::optional<Parser::Result::Packet> Parser::parsePacket() {
+  size_t const beg = posInBytes();
   Header hdr = parseHeader();
   uint32_t size = 0;
   if(hdr.hasSizeField) {
@@ -26,8 +38,9 @@ std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> Parser:
   } else {
     size = this->buffer_.size() - 1 - (hdr.extensionFlag ? 1 : 0);
   }
+  size_t const startPositionInBytes = posInBytes();
+  size_t const end = startPositionInBytes + size;
   size_t const startPosition = this->posInBits();
-  std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> result;
   if(
       hdr.type != Header::Type::SequenceHeader &&
       hdr.type != Header::Type::TemporalDelimiter &&
@@ -38,14 +51,16 @@ std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> Parser:
     bool inTemporalLayer = (static_cast<uint16_t>(OperatingPointIdc >> ehdr.temporalID ) & 1u) == 1u;
     bool inSpatialLayer = (static_cast<uint16_t>(OperatingPointIdc >> (ehdr.spatialID + 8u)) & 1u) == 1u;
     if( !inTemporalLayer || !inSpatialLayer) {
-      return result;
+      this->reader_.seek(end);
+      return std::optional<Parser::Result::Packet>();
     }
   }
+  Result::Packet::Content content;
   switch(hdr.type) {
     case Header::Type::Reserved:
       break;
     case Header::Type::SequenceHeader:
-      result = this->parseSequenceHeader(hdr);
+      content = this->parseSequenceHeader();
       break;
     case Header::Type::TemporalDelimiter:
       // 5.6.
@@ -53,26 +68,21 @@ std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> Parser:
       if(size != 0) {
         throw std::runtime_error(tfm::format("Invalid temporal delimiter with size=%ld", size));
       }
-      result = TemporalDelimiter();
+      content = TemporalDelimiter();
       break;
     case Header::Type::FrameHeader:
-      break;
     case Header::Type::TileGroup:
-      break;
     case Header::Type::Metadata:
-      break;
     case Header::Type::Frame:
-      break;
     case Header::Type::RedunduntFrameHeader:
-      break;
     case Header::Type::TileList:
           /* 9-14: reserved */
       break;
     case Header::Type::Padding:
-      result = Padding();
+      content = Padding();
       break;
     default:
-      static_assert("Do not come here.");
+      throw std::runtime_error(tfm::format("unknown obu type = %d", static_cast<uint8_t>(hdr.type)));
   }
   size_t const currentPosition = this->posInBits();
   size_t const payloadBits = currentPosition - startPosition;
@@ -82,14 +92,27 @@ std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> Parser:
       hdr.type != Header::Type::TileList &&
       hdr.type != Header::Type::Frame) {
     size_t bitsToRead = size * 8 - payloadBits;
-    uint8_t unused;
+    // 5.3.4. Trailing bits syntax
+    uint8_t trailingOneBit = readBits(1);
+    if(trailingOneBit != 1u) {
+      throw std::runtime_error("trailing_one_bit must be 1, but got 0. Is that a corrupted file?");
+    }
+    bitsToRead--;
+    uint8_t zero;
     while(bitsToRead >= 8u) {
-      unused = this->readU8();
+      zero = this->readU8();
+      if(zero != 0u) {
+        throw std::runtime_error(tfm::format("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero));
+      }
       bitsToRead -= 8u;
     }
-    unused = this->readBits(bitsToRead);
+    zero = this->readBits(bitsToRead);
+    if(zero != 0u) {
+      throw std::runtime_error(tfm::format("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero));
+    }
   }
-  return result;
+  this->reader_.seek(end);
+  return Result::Packet(beg, end, hdr, std::move(content));
 }
 
 Header Parser::parseHeader() {
@@ -109,9 +132,8 @@ Header Parser::parseHeader() {
   return hdr;
 }
 
-SequenceHeader Parser::parseSequenceHeader(Header const& hdr) {
+SequenceHeader Parser::parseSequenceHeader() {
   SequenceHeader shdr{};
-  shdr.header = hdr;
   shdr.seqProfile = this->readBits(3);
   shdr.stillPicture = this->readBool();
   shdr.reducedStillPictureHeader = this->readBool();
@@ -236,7 +258,6 @@ SequenceHeader Parser::parseSequenceHeader(Header const& hdr) {
   shdr.enableRestoration = readBool();
   shdr.colorConfig = this->parseColorConfig(shdr);
   shdr.filmGrainParamsPresent = readBool();
-  uint8_t dummyBit = readBits(1); // FIXME(ledyba-z): dav1d reads this bit, but av1-spedc.pdf does not mention it.
   return shdr;
 }
 
@@ -420,6 +441,5 @@ uint64_t Parser::readUint(size_t const bits) {
   value = value << left | readBits(left);
   return value;
 }
-
 
 }

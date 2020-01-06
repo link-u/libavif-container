@@ -10,14 +10,13 @@ namespace avif::av1 {
 
 struct SequenceHeader final {
   //
-  Header header{};
   uint8_t seqProfile{};
   bool stillPicture{};
   bool reducedStillPictureHeader{};
 
   bool timingInfoPresentFlag{};
 
-  struct TimingInfo {
+  struct TimingInfo final {
     uint32_t numUnitsInDelayTick;
     uint32_t timeScale;
     bool equalPictureInterval;
@@ -26,7 +25,7 @@ struct SequenceHeader final {
   std::optional<TimingInfo> timingInfo;
   bool decoderModelInfoPresentFlag{};
 
-  struct DecoderModelInfo {
+  struct DecoderModelInfo final {
     uint8_t bufferDelayLength;
     uint32_t numUnitsInDecodingTick;
     uint8_t bufferRemovalTimeLength;
@@ -36,11 +35,11 @@ struct SequenceHeader final {
   bool initialDisplayDelayPresentFlag{};
   uint8_t operatingPointsCnt{};
 
-  struct OperatingPoint {
-    uint16_t idc;
-    uint8_t seqLevelIdx;
-    uint8_t seqTier;
-    bool decoderModelPresentFlag;
+  struct OperatingPoint final {
+    uint16_t idc{};
+    uint8_t seqLevelIdx{};
+    uint8_t seqTier{};
+    bool decoderModelPresentFlag{};
 
     struct OperatingParametersInfo {
       uint64_t decoderBufferDelay;
@@ -48,7 +47,7 @@ struct SequenceHeader final {
       bool lowDelayModeFlag;
     };
     std::optional<OperatingParametersInfo> operatingParametersInfo;
-    bool initialDisplayDelayPresent;
+    bool initialDisplayDelayPresent{};
     std::optional<uint8_t> initialDisplayDelay;
   };
   std::vector<OperatingPoint> operatingPoints;
@@ -81,7 +80,7 @@ struct SequenceHeader final {
   bool enableSuperres;
   bool enableCDEF;
   bool enableRestoration;
-  struct ColorConfig {
+  struct ColorConfig final {
     bool highBitdepth;
     bool twelveBit;
     bool monochrome;

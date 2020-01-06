@@ -7,7 +7,7 @@
 namespace avif::av1 {
 
 struct Padding final {
-
+  // Empty OBU
 };
 
 }

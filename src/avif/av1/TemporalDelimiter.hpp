@@ -7,6 +7,7 @@
 namespace avif::av1 {
 
 struct TemporalDelimiter final {
+  // Empty OBU
 };
 
 }

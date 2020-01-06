@@ -14,7 +14,51 @@
 
 namespace avif::av1 {
 
+
 class Parser {
+public:
+  class Result {
+  public:
+    class Packet {
+    public:
+      using Content = std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding>;
+    private:
+      size_t beg_;
+      size_t end_;
+      size_t size_;
+      Header header_;
+      Content content_;
+    private:
+      friend class Parser;
+      Packet(size_t const beg, size_t const end, Header const header, Content&& content)
+      :beg_(beg)
+      ,end_(end)
+      ,size_(end-beg)
+      ,header_(header)
+      ,content_(std::move(content))
+      {}
+
+    public:
+      [[ nodiscard ]] size_t beg() const { return this->beg_; }
+      [[ nodiscard ]] size_t end() const { return this->end_; }
+      [[ nodiscard ]] size_t size() const { return this->size_; }
+      [[ nodiscard ]] Header const& header() const { return this->header_; }
+      [[ nodiscard ]] Header::Type type() const { return this->header_.type; }
+      [[ nodiscard ]] Content const& content() const { return this->content_; }
+    };
+
+  private:
+    std::vector<uint8_t> buffer_;
+    std::vector<Packet> packets_;
+    friend class Parser;
+    Result(std::vector<uint8_t> buffer, std::vector<Packet> packets)
+    :buffer_(std::move(buffer))
+    ,packets_(std::move(packets)){}
+
+  public:
+    [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
+    [[ nodiscard ]] std::vector<Packet> const& packets() const { return this->packets_; }
+  };
 private:
   avif::util::Logger& log_;
   std::vector<uint8_t> buffer_;
@@ -32,11 +76,16 @@ public:
 
 public: //entry point
   Parser(util::Logger& log, std::vector<uint8_t> buffer);
-  std::variant<std::monostate, SequenceHeader, TemporalDelimiter, Padding> parse();
+  Result parse();
 
 private:
+  std::optional<Result::Packet> parsePacket();
+
+  // General OBU
   Header parseHeader();
-  SequenceHeader parseSequenceHeader(Header const& hdr);
+
+  // Sequence Header OBU
+  SequenceHeader parseSequenceHeader();
   SequenceHeader::TimingInfo parseTimingInfo();
   SequenceHeader::DecoderModelInfo parseDecoderModelInfo();
   SequenceHeader::ColorConfig parseColorConfig(SequenceHeader const& shdr);
@@ -44,6 +93,9 @@ private:
 private:
   [[nodiscard]] size_t posInBits() {
     return (this->reader_.pos() - 1) * 8 + (8 - bitsLeft_);
+  }
+  [[nodiscard]] size_t posInBytes() {
+    return bitsLeft_ == 0 ? reader_.pos() : (reader_.pos() - 1);
   }
   [[nodiscard]] bool consumed() { return this->reader_.consumed(); }
   [[nodiscard]] uint8_t  readBits(uint8_t bits);
