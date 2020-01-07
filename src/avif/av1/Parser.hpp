@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 #include <variant>
+#include <memory>
 #include "../util/StreamReader.hpp"
 #include "SequenceHeader.hpp"
 #include "TemporalDelimiter.hpp"
@@ -37,7 +38,6 @@ public:
       ,header_(header)
       ,content_(std::move(content))
       {}
-
     public:
       [[ nodiscard ]] size_t beg() const { return this->beg_; }
       [[ nodiscard ]] size_t end() const { return this->end_; }
@@ -50,21 +50,30 @@ public:
   private:
     std::vector<uint8_t> buffer_;
     std::vector<Packet> packets_;
-    friend class Parser;
+  public:
     Result(std::vector<uint8_t> buffer, std::vector<Packet> packets)
     :buffer_(std::move(buffer))
-    ,packets_(std::move(packets)){}
-
+    ,packets_(std::move(packets))
+    {
+    }
+    ~Result() noexcept = default;
+    Result& operator=(Result const&) = delete;
+    Result& operator=(Result&&) = delete;
+    Result(Result const&) = delete;
+    Result(Result&&) = delete;
   public:
     [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
     [[ nodiscard ]] std::vector<Packet> const& packets() const { return this->packets_; }
   };
 private:
   avif::util::Logger& log_;
+private: /* intermediate state */
   std::vector<uint8_t> buffer_;
   avif::util::StreamReader reader_;
   uint8_t bits_;
   uint8_t bitsLeft_;
+private:
+  std::shared_ptr<Result> result_{};
 private:
   uint16_t OperatingPointIdc = 0;
 public:
@@ -76,7 +85,7 @@ public:
 
 public: //entry point
   Parser(util::Logger& log, std::vector<uint8_t> buffer);
-  Result parse();
+  std::shared_ptr<Result> parse();
 
 private:
   std::optional<Result::Packet> parsePacket();

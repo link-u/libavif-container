@@ -3,7 +3,6 @@
 //
 
 #include "Parser.hpp"
-#include "../../../external/tinyformat/tinyformat.h"
 
 namespace avif::av1 {
 
@@ -18,7 +17,10 @@ Parser::Parser(util::Logger& log, std::vector<uint8_t> buffer)
   this->bitsLeft_  = 8;
 }
 
-Parser::Result Parser::parse() {
+std::shared_ptr<Parser::Result> Parser::parse() {
+  if (this->result_) {
+    return this->result_;
+  }
   std::vector<Parser::Result::Packet> packets;
   while(!this->reader_.consumed()) {
     std::optional<Parser::Result::Packet> packet = this->parsePacket();
@@ -26,7 +28,8 @@ Parser::Result Parser::parse() {
       packets.emplace_back(std::move(packet.value()));
     }
   }
-  return Result(std::move(this->buffer_), std::move(packets));
+  this->result_ = std::make_shared<Result>(std::move(this->buffer_), std::move(packets));
+  return this->result_;
 }
 
 std::optional<Parser::Result::Packet> Parser::parsePacket() {
