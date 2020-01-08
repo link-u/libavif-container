@@ -63,6 +63,7 @@ public:
       {
       }
       ~Result() noexcept = default;
+      Result() = delete;
       Result& operator=(Result const&) = delete;
       Result& operator=(Result&&) = delete;
       Result(Result const&) = delete;
@@ -81,7 +82,7 @@ public:
         if(this->ok()) {
           return std::get<FileBox>(this->result_);
         } else {
-          throw std::domain_error(tfm::format("ParseResult is error: %s", error()));
+          throw std::domain_error(tfm::format("ParseResult is an error: %s", error()));
         }
       }
     };

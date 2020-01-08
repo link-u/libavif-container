@@ -6,6 +6,8 @@
 
 #include <cstdint>
 #include <vector>
+#include <optional>
+#include <string>
 #include "Logger.hpp"
 
 namespace avif::util {
@@ -31,7 +33,7 @@ public:
 
 public:
   [[nodiscard]] util::Logger& log() { return this->log_; }
-  [[nodiscard]] size_t pos() { return this->pos_; }
+  [[nodiscard]] size_t pos() const { return this->pos_; }
   void seek(size_t pos) {
     this->pos_ = pos;
   }

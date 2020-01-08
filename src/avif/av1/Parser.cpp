@@ -10,51 +10,47 @@ Parser::Parser(util::Logger& log, std::vector<uint8_t> buffer)
 :log_(log)
 ,buffer_(std::move(buffer))
 ,reader_(log, buffer_)
-,bits_(0)
-,bitsLeft_(0)
 {
-  this->bits_ = this->reader_.readU8();
-  this->bitsLeft_  = 8;
 }
 
 std::shared_ptr<Parser::Result> Parser::parse() {
   if (this->result_) {
     return this->result_;
   }
-  std::vector<Parser::Result::Packet> packets;
-  while(!this->reader_.consumed()) {
-    std::optional<Parser::Result::Packet> packet = this->parsePacket();
-    if (packet.has_value()) {
-      packets.emplace_back(std::move(packet.value()));
+  try {
+    std::vector<Parser::Result::Packet> packets;
+    while(!this->reader_.consumed()) {
+      std::optional<Parser::Result::Packet> packet = this->parsePacket();
+      if (packet.has_value()) {
+        packets.emplace_back(std::move(packet.value()));
+      }
     }
+    this->result_ = std::make_shared<Result>(std::move(this->buffer_), std::move(packets));
+  } catch(Parser::Error& err) {
+    this->result_ = std::make_shared<Parser::Result>(std::move(this->buffer_), std::move(err));
+  } catch(std::exception& err) {
+    this->result_ = std::make_shared<Parser::Result>(std::move(this->buffer_), Parser::Error(err));
+  } catch(...) {
+    this->result_ = std::make_shared<Parser::Result>(std::move(this->buffer_), Parser::Error("Unknwon error"));
   }
-  this->result_ = std::make_shared<Result>(std::move(this->buffer_), std::move(packets));
   return this->result_;
 }
 
 std::optional<Parser::Result::Packet> Parser::parsePacket() {
   size_t const beg = posInBytes();
   Header hdr = parseHeader();
-  uint32_t size = 0;
-  if(hdr.hasSizeField) {
-    size = readLEB128();
-  } else {
-    size = this->buffer_.size() - 1 - (hdr.extensionFlag ? 1 : 0);
-  }
+  uint32_t const size = hdr.hasSizeField ? readLEB128() : ((buffer_.size() - beg) - 1 - (hdr.extensionFlag ? 1 : 0));
   size_t const startPositionInBytes = posInBytes();
   size_t const end = startPositionInBytes + size;
-  size_t const startPosition = this->posInBits();
+  size_t const startPosition = posInBits();
   if(
-      hdr.type != Header::Type::SequenceHeader &&
-      hdr.type != Header::Type::TemporalDelimiter &&
-      this->OperatingPointIdc != 0 &&
-      hdr.extensionFlag
-      ) {
+      hdr.type != Header::Type::SequenceHeader && hdr.type != Header::Type::TemporalDelimiter &&
+      this->OperatingPointIdc != 0 && hdr.extensionFlag) {
     ExtensionHeader ehdr = hdr.extensionHeader.value();
-    bool inTemporalLayer = (static_cast<uint16_t>(OperatingPointIdc >> ehdr.temporalID ) & 1u) == 1u;
-    bool inSpatialLayer = (static_cast<uint16_t>(OperatingPointIdc >> (ehdr.spatialID + 8u)) & 1u) == 1u;
+    bool const inTemporalLayer = (static_cast<uint16_t>(OperatingPointIdc >> ehdr.temporalID ) & 1u) == 1u;
+    bool const inSpatialLayer = (static_cast<uint16_t>(OperatingPointIdc >> (ehdr.spatialID + 8u)) & 1u) == 1u;
     if( !inTemporalLayer || !inSpatialLayer) {
-      this->reader_.seek(end);
+      seekInBytes(end);
       return std::optional<Parser::Result::Packet>();
     }
   }
@@ -69,7 +65,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       // 5.6.
       // Note: The temporal delimiter has an empty payload.
       if(size != 0) {
-        throw std::runtime_error(tfm::format("Invalid temporal delimiter with size=%ld", size));
+        throw Error("Invalid temporal delimiter with size=%ld", size);
       }
       content = TemporalDelimiter();
       break;
@@ -85,7 +81,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       content = Padding();
       break;
     default:
-      throw std::runtime_error(tfm::format("unknown obu type = %d", static_cast<uint8_t>(hdr.type)));
+      throw Error("unknown obu type = %d", static_cast<uint8_t>(hdr.type));
   }
   size_t const currentPosition = this->posInBits();
   size_t const payloadBits = currentPosition - startPosition;
@@ -96,25 +92,24 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       hdr.type != Header::Type::Frame) {
     size_t bitsToRead = size * 8 - payloadBits;
     // 5.3.4. Trailing bits syntax
-    uint8_t trailingOneBit = readBits(1);
+    uint8_t const trailingOneBit = readBits(1);
     if(trailingOneBit != 1u) {
-      throw std::runtime_error("trailing_one_bit must be 1, but got 0. Is that a corrupted file?");
+      throw Error("trailing_one_bit must be 1, but got 0. Is that a corrupted file?");
     }
     bitsToRead--;
-    uint8_t zero;
     while(bitsToRead >= 8u) {
-      zero = this->readU8();
+      uint8_t const zero = this->readU8();
       if(zero != 0u) {
-        throw std::runtime_error(tfm::format("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero));
+        throw Error("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero);
       }
       bitsToRead -= 8u;
     }
-    zero = this->readBits(bitsToRead);
+    uint8_t const zero = this->readBits(bitsToRead);
     if(zero != 0u) {
-      throw std::runtime_error(tfm::format("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero));
+      throw Error("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero);
     }
   }
-  this->reader_.seek(end);
+  seekInBytes(end);
   return Result::Packet(beg, end, hdr, std::move(content));
 }
 
@@ -292,7 +287,7 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
   } else if (shdr.seqProfile <= 2) {
     bitDepth = cfg.highBitdepth ? 10 : 8;
   } else {
-    throw std::runtime_error(tfm::format("unknown or unsupported seq profile: %d", shdr.seqProfile));
+    throw Error("unknown or unsupported seq profile: %d", shdr.seqProfile);
   }
   if (shdr.seqProfile == 1) {
     cfg.monochrome = false;
@@ -346,103 +341,6 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
   }
   cfg.separateUVDeltaQ = readBool();
   return cfg;
-}
-
-uint32_t Parser::readLEB128() {
-  uint64_t value = 0;
-  for(size_t i = 0; i < 8; i++) {
-    uint8_t const v = readU8();
-    value |= static_cast<uint64_t>(v & 0x7fu) << (i*7u);
-    if ( (v & 0x80u) != 0x80u ) {
-      break;
-    }
-  }
-  return value;
-}
-
-uint32_t Parser::readUVLC() {
-  uint32_t leadingZeros = 0;
-  while(true) {
-    bool done = readBool();
-    if(done) {
-      break;
-    }
-    leadingZeros++;
-  }
-  if(leadingZeros >= 32) {
-    return 0xffffffff;
-  }
-  uint32_t value = 0;
-  uint32_t left = 0;
-  while(left < 8) {
-    value = value << 8u | readU8();
-    left -= 8;
-  }
-  value = value << left | readBits(left);
-  return value + (1u << leadingZeros) - 1u;
-}
-
-uint8_t Parser::readBits(uint8_t const bits) {
-  assert(bits <= 8 && "readBits can read less then or equal to 8 bits.");
-  if(bits <= this->bitsLeft_) {
-    auto const result = static_cast<uint8_t>(bits_ >> static_cast<uint8_t>(this->bitsLeft_ - bits)) & ((1u << bits)-1u);
-    this->bitsLeft_ -= bits;
-    return result;
-  }
-  uint8_t v = this->reader_.readU8();
-  uint8_t nextBitsLeft = bitsLeft_ + 8u - bits;
-  uint8_t upper = static_cast<uint8_t>(bits_ & ((1u << bitsLeft_) - 1u)) << static_cast<uint8_t>(bits - bitsLeft_);
-  uint8_t lower = static_cast<uint8_t>(v >> nextBitsLeft) & ((1u << static_cast<uint8_t>(bits - bitsLeft_)) - 1);
-  auto const result = upper | lower;
-  this->bitsLeft_ = nextBitsLeft;
-  this->bits_ = v;
-  return result;
-}
-
-bool Parser::readBool() {
-  return this->readBits(1) == 1u;
-}
-
-uint8_t Parser::readU8() {
-  return readBits(8);
-}
-
-uint16_t Parser::readU16() {
-  return
-      static_cast<uint16_t>(static_cast<uint16_t>(readU8()) << 8u) |
-      static_cast<uint16_t>(static_cast<uint16_t>(readU8()) << 0u);
-}
-
-uint32_t Parser::readU32() {
-  return
-      static_cast<uint32_t>(readU8()) << 24u |
-      static_cast<uint32_t>(readU8()) << 16u |
-      static_cast<uint32_t>(readU8()) << 8u |
-      static_cast<uint32_t>(readU8()) << 0u;
-}
-
-uint64_t Parser::readU64() {
-  return
-      static_cast<uint64_t>(readU8()) << 56u |
-      static_cast<uint64_t>(readU8()) << 48u |
-      static_cast<uint64_t>(readU8()) << 40u |
-      static_cast<uint64_t>(readU8()) << 32u |
-      static_cast<uint64_t>(readU8()) << 24u |
-      static_cast<uint64_t>(readU8()) << 16u |
-      static_cast<uint64_t>(readU8()) << 8u |
-      static_cast<uint64_t>(readU8()) << 0u;
-}
-
-uint64_t Parser::readUint(size_t const bits) {
-  assert(bits <= 64 && "readUint can read less then or equal to 64 bits.");
-  size_t left = bits;
-  uint64_t value = 0u;
-  while(left >= 8) {
-    value = value << 8u | readU8();
-    left -= 8u;
-  }
-  value = value << left | readBits(left);
-  return value;
 }
 
 }

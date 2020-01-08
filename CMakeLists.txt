@@ -44,6 +44,8 @@ add_library(
 
         src/avif/av1/Parser.cpp
         src/avif/av1/Parser.hpp
+        src/avif/av1/BitStreamReader.cpp
+        src/avif/av1/BitStreamReader.hpp
 )
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)

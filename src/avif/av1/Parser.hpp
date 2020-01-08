@@ -12,12 +12,39 @@
 #include "SequenceHeader.hpp"
 #include "TemporalDelimiter.hpp"
 #include "Padding.hpp"
+#include "BitStreamReader.hpp"
 
 namespace avif::av1 {
 
-
 class Parser {
 public:
+  class Error final : std::exception {
+  private:
+    std::string msg_;
+  public:
+    Error() = delete;
+    template <typename ...Args>
+    explicit Error(std::string const& fmt, Args &&... args)
+        :std::exception()
+        ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...))
+    {
+    }
+    explicit Error(std::exception const& err):std::exception(), msg_(tfm::format("[stdlib] %s", err.what())) {
+    }
+    explicit Error(std::string  msg):std::exception(), msg_(std::move(msg)) {
+    }
+    Error(Error&&) = default;
+    Error& operator=(Error&&) = default;
+    Error(Error const&) = default;
+    Error& operator=(Error const&) = default;
+    ~Error() noexcept override = default;
+    [[ nodiscard ]] const char* what() const noexcept override {
+      return this->msg_.c_str();
+    }
+    [[ nodiscard ]] std::string const& msg() const noexcept {
+      return this->msg_;
+    }
+  };
   class Result {
   public:
     class Packet {
@@ -46,14 +73,19 @@ public:
       [[ nodiscard ]] Header::Type type() const { return this->header_.type; }
       [[ nodiscard ]] Content const& content() const { return this->content_; }
     };
-
   private:
     std::vector<uint8_t> buffer_;
-    std::vector<Packet> packets_;
+    std::variant<std::vector<Packet>, Error> const result_;
   public:
-    Result(std::vector<uint8_t> buffer, std::vector<Packet> packets)
+    Result() = delete;
+    explicit Result(std::vector<uint8_t> buffer, std::vector<Packet> packets)
     :buffer_(std::move(buffer))
-    ,packets_(std::move(packets))
+    ,result_(std::move(packets))
+    {
+    }
+    explicit Result(std::vector<uint8_t> buffer, Error error)
+    :buffer_(std::move(buffer))
+    ,result_(std::move(error))
     {
     }
     ~Result() noexcept = default;
@@ -62,16 +94,28 @@ public:
     Result(Result const&) = delete;
     Result(Result&&) = delete;
   public:
+    [[ nodiscard ]] bool ok() const { return std::holds_alternative<std::vector<Packet>>(this->result_); }
     [[ nodiscard ]] std::vector<uint8_t> const& buffer() const { return this->buffer_; }
-    [[ nodiscard ]] std::vector<Packet> const& packets() const { return this->packets_; }
+    [[ nodiscard ]] std::string error() const {
+      if (this->ok()) {
+        return "<no-error>";
+      } else {
+        return std::get<Parser::Error>(this->result_).msg();
+      }
+    }
+    [[ nodiscard ]] std::vector<Packet> const& packets() const {
+      if(this->ok()) {
+        return std::get<std::vector<Packet>>(this->result_);
+      } else {
+        throw std::domain_error(tfm::format("ParseResult is an error: %s", error()));
+      }
+    }
   };
 private:
   avif::util::Logger& log_;
-private: /* intermediate state */
+private: /* intermediate states */
   std::vector<uint8_t> buffer_;
-  avif::util::StreamReader reader_;
-  uint8_t bits_;
-  uint8_t bitsLeft_;
+  BitStreamReader reader_;
 private:
   std::shared_ptr<Result> result_{};
 private:
@@ -100,22 +144,19 @@ private:
   SequenceHeader::ColorConfig parseColorConfig(SequenceHeader const& shdr);
 
 private:
-  [[nodiscard]] size_t posInBits() {
-    return (this->reader_.pos() - 1) * 8 + (8 - bitsLeft_);
-  }
-  [[nodiscard]] size_t posInBytes() {
-    return bitsLeft_ == 0 ? reader_.pos() : (reader_.pos() - 1);
-  }
+  [[nodiscard]] size_t posInBits() { return this->reader_.posInBits(); }
+  [[nodiscard]] size_t posInBytes() { return this->reader_.posInBytes(); }
+  void seekInBytes(size_t posInBytes) { this->reader_.seekInBytes(posInBytes); };
   [[nodiscard]] bool consumed() { return this->reader_.consumed(); }
-  [[nodiscard]] uint8_t  readBits(uint8_t bits);
-  [[nodiscard]] uint64_t readUint(size_t bits);
-  [[nodiscard]] bool  readBool();
-  [[nodiscard]] uint8_t  readU8();
-  [[nodiscard]] uint16_t readU16();
-  [[nodiscard]] uint32_t readU32();
-  [[nodiscard]] uint64_t readU64();
-  [[nodiscard]] uint32_t readLEB128();
-  [[nodiscard]] uint32_t readUVLC();
+  [[nodiscard]] uint8_t  readBits(uint8_t bits) { return this->reader_.readBits(bits); }
+  [[nodiscard]] uint64_t readUint(size_t bits) { return this->reader_.readUint(bits); };
+  [[nodiscard]] bool  readBool() { return this->reader_.readBool(); };
+  [[nodiscard]] uint8_t  readU8() { return this->reader_.readU8(); };
+  [[nodiscard]] uint16_t readU16() { return this->reader_.readU16(); };
+  [[nodiscard]] uint32_t readU32() { return this->reader_.readU32(); };
+  [[nodiscard]] uint64_t readU64() { return this->reader_.readU64(); };
+  [[nodiscard]] uint32_t readLEB128() { return this->reader_.readLEB128(); };
+  [[nodiscard]] uint32_t readUVLC() { return this->reader_.readUVLC(); };
 };
 
 }
