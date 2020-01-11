@@ -192,8 +192,8 @@ SequenceHeader Parser::parseSequenceHeader() {
   }
   shdr.frameWidthBits = readBits(4) + 1;
   shdr.frameHeightBits = readBits(4) + 1;
-  shdr.maxFrameWidth = readBits(shdr.frameWidthBits) + 1;
-  shdr.maxFrameHeight = readBits(shdr.frameHeightBits) + 1;
+  shdr.maxFrameWidth = readUint(shdr.frameWidthBits) + 1;
+  shdr.maxFrameHeight = readUint(shdr.frameHeightBits) + 1;
   if (shdr.reducedStillPictureHeader) {
     shdr.frameIDNumbersPresentFlag = false;
   } else {

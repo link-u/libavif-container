@@ -1,3 +1,6 @@
 [submodule "external/tinyformat"]
 	path = external/tinyformat
 	url = git@github.com:c42f/tinyformat.git
+[submodule "external/gtest"]
+	path = external/gtest
+	url = git@github.com:google/googletest.git

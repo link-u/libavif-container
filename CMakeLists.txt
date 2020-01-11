@@ -50,3 +50,31 @@ add_library(
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+
+###############################################################################
+option(PACKAGE_TESTS "Build the tests" ON)
+if(PACKAGE_TESTS)
+    enable_testing()
+    include(GoogleTest)
+    add_subdirectory(external/gtest EXCLUDE_FROM_ALL)
+
+    file(GLOB_RECURSE SRC_FILES src/*.hpp)
+    add_executable(libavif-container-tests
+            ${SRC_FILES}
+            test/av1/ParseTest.cpp
+            )
+    target_link_libraries(libavif-container-tests PRIVATE libavif-container)
+    target_link_libraries(libavif-container-tests PRIVATE gtest)
+    target_link_libraries(libavif-container-tests PRIVATE gtest_main)
+    target_include_directories(libavif-container-tests PRIVATE external/gtest/googletest/include)
+    set_property(TARGET libavif-container-tests PROPERTY CXX_STANDARD 17)
+    set_property(TARGET libavif-container-tests PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+
+    gtest_add_tests(
+            TARGET      libavif-container-tests
+            #TEST_SUFFIX .noArgs
+            TEST_LIST   ALL_TESTS
+    )
+    set_tests_properties(${ALL_TESTS} PROPERTIES TIMEOUT 10)
+    #add_test(NAME libavif-container-tests COMMAND libavif-container-tests)
+endif()
