@@ -11,7 +11,7 @@ namespace avif {
 
 struct ItemInfoEntry : public FullBox {
   uint32_t itemID;
-  std::optional<uint32_t> itemType; //仕様書には記載がないが、これもバージョンによっては存在しない
+  std::optional<std::string> itemType; //仕様書には記載がないが、これもバージョンによっては存在しない
   uint16_t itemProtectionIndex;
   std::string itemName;
   std::string contentType;

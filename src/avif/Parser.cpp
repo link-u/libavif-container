@@ -428,7 +428,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
     }
     box.itemProtectionIndex = readU16();
     uint32_t const itemType = readU32();
-    box.itemType = std::make_optional<uint32_t>(itemType);
+    box.itemType = std::make_optional<std::string>(uint2str(itemType));
     box.itemName = readString();
     switch(itemType) { // There may be additional data in particular cases.
       case str2uint("mime"):
