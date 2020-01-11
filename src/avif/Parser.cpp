@@ -384,6 +384,7 @@ void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
     }
     ItemInfoEntry entry;
     this->parseItemInfoEntry(entry, hdr.end);
+    box.itemInfos.emplace_back(std::move(entry));
     this->seek(hdr.end);
   }
 }
