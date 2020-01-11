@@ -52,8 +52,8 @@ set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 
 ###############################################################################
-option(PACKAGE_TESTS "Build the tests" ON)
-if(PACKAGE_TESTS)
+option(LIBAVIF_CONTAINER_BUILD_TESTS "Build the tests" OFF)
+if(LIBAVIF_CONTAINER_BUILD_TESTS)
     enable_testing()
     include(GoogleTest)
     add_subdirectory(external/gtest EXCLUDE_FROM_ALL)
