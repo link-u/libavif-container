@@ -11,7 +11,6 @@
 namespace avif {
 
 struct PixelInformationProperty : FullBox {
-  uint8_t  numChannels;
   std::vector<uint8_t> bitsPerChannel;
 };
 

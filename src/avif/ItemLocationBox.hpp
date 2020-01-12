@@ -13,13 +13,11 @@ struct ItemLocationBox : public FullBox {
   uint8_t lengthSize;
   uint8_t baseOffsetSize;
   uint8_t indexSize;
-  uint32_t itemCount;
   struct Item {
     uint32_t itemID;
     uint8_t constructionMethod;
     uint16_t dataReferenceIndex;
     uint64_t baseOffset;
-    uint16_t extentCount;
     struct Extent {
       uint64_t extentIndex;
       uint64_t extentOffset;

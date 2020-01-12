@@ -6,10 +6,13 @@ add_library(
         # 3rd party
         external/tinyformat/tinyformat.h
         # sources
+        src/avif/util/File.cpp
+        src/avif/util/File.hpp
         src/avif/util/Logger.hpp
         src/avif/util/Logger.cpp
         src/avif/util/FileLogger.cpp
         src/avif/util/FileLogger.hpp
+        src/avif/util/FourCC.hpp
         src/avif/util/StreamReader.cpp
         src/avif/util/StreamReader.hpp
         src/avif/util/StreamWriter.cpp
@@ -36,6 +39,8 @@ add_library(
 
         src/avif/Parser.cpp
         src/avif/Parser.hpp
+        src/avif/Writer.cpp
+        src/avif/Writer.hpp
 
         src/avif/av1/Header.hpp
         src/avif/av1/SequenceHeader.hpp

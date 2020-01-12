@@ -14,25 +14,10 @@
 #include "ItemPropertiesBox.hpp"
 #include "ItemPropertyContainer.hpp"
 #include "ItemInfoExtension.hpp"
+#include "util/FourCC.hpp"
 
-namespace {
-constexpr uint32_t str2uint(const char str[4]) {
-  return
-      static_cast<uint32_t>(str[0]) << 24u |
-      static_cast<uint32_t>(str[1]) << 16u |
-      static_cast<uint32_t>(str[2]) << 8u |
-      static_cast<uint32_t>(str[3]) << 0u;
-}
-std::string uint2str(uint32_t const code) {
-  char str[5];
-  str[0] = static_cast<uint8_t>((code >> 24u) & 0xffu);
-  str[1] = static_cast<uint8_t>((code >> 16u) & 0xffu);
-  str[2] = static_cast<uint8_t>((code >>  8u) & 0xffu);
-  str[3] = static_cast<uint8_t>((code >>  0u) & 0xffu);
-  str[4] = '\0';
-  return std::string(str);
-}
-}
+using avif::util::str2uint;
+using avif::util::uint2str;
 
 namespace avif {
 
@@ -295,8 +280,8 @@ void Parser::parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty& prop,
 void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_t const end) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/pixelinformationproperty.cpp
   parseFullBoxHeader(prop);
-  prop.numChannels = readU8();
-  for(uint8_t i =0; i < prop.numChannels; ++i) {
+  uint8_t const numChannels = readU8();
+  for(uint8_t i =0; i < numChannels; ++i) {
     prop.bitsPerChannel.emplace_back(readU8());
   }
 }
@@ -333,16 +318,16 @@ void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox&
 void Parser::parseItemPropertyAssociation(ItemPropertyAssociation& assoc) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertyassociation.cpp
   parseFullBoxHeader(assoc);
-  assoc.itemCount = readU32();
-  for(uint32_t i = 0; i < assoc.itemCount; ++i) {
+  uint32_t const itemCount = readU32();
+  for(uint32_t i = 0; i < itemCount; ++i) {
     ItemPropertyAssociation::Item item;
     if(assoc.version() < 1) {
       item.itemID = readU16();
     } else {
       item.itemID = readU32();
     }
-    item.entryCount = readU8();
-    for(uint8_t j = 0; j < item.entryCount; ++j) {
+    uint8_t entryCount = readU8();
+    for(uint8_t j = 0; j < entryCount; ++j) {
       ItemPropertyAssociation::Item::Entry entry{};
       if((assoc.flags() & 1u) == 1u) {
         uint16_t const v = readU16();
@@ -389,7 +374,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
     box.itemProtectionIndex = readU16();
     box.itemName = readString();
     box.contentType = readString();
-    box.contentEncoding = std::make_optional<std::string>(readString());
+    box.contentEncoding = readString();
   }
   if(box.version() == 1) {
     uint32_t const extensionType = readU32();
@@ -426,7 +411,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
     switch(itemType) { // There may be additional data in particular cases.
       case str2uint("mime"):
         box.contentType = readString();
-        box.contentEncoding = std::make_optional<std::string>(readString());
+        box.contentEncoding = readString();
         break;
       case str2uint("uri "):
         box.itemURIType = std::make_optional<std::string>(readString());
@@ -461,14 +446,15 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
       throw Error("Invalid ItemLocationBox::baseOffsetSize=%d", box.offsetSize);
     }
   }
+  uint32_t itemCount = 0;
   if(box.version() < 2) {
-    box.itemCount = readU16();
+    itemCount = readU16();
   }else if(box.version() == 2){
-    box.itemCount = readU32();
+    itemCount = readU32();
   }else{
     throw Error("Unknwon ItemLocationBox version=%d", box.version());
   }
-  for(uint32_t i = 0; i < box.itemCount; ++i) {
+  for(uint32_t i = 0; i < itemCount; ++i) {
     ItemLocationBox::Item item{};
     if (box.version() < 2) {
       item.itemID = readU16();
@@ -482,8 +468,8 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
     }
     item.dataReferenceIndex = readU16();
     item.baseOffset = readUint(box.baseOffsetSize).value();
-    item.extentCount = readU16();
-    for (uint32_t j = 0; j < item.extentCount; ++j) {
+    uint16_t const extentCount = readU16();
+    for (uint32_t j = 0; j < extentCount; ++j) {
       ItemLocationBox::Item::Extent extent{};
       if((box.version() == 1 || box.version() == 2) && (box.indexSize > 0)) {
         extent.extentIndex = readUint(box.indexSize).value();

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <variant>
+
 #include "Box.hpp"
 #include "PixelAspectRatioBox.hpp"
 #include "ImageSpatialExtentsProperty.hpp"
