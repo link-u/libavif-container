@@ -10,8 +10,8 @@
 namespace avif {
 
 struct MediaDataBox : public Box {
-  size_t beg;
-  size_t end;
+  size_t offset;
+  size_t size;
 };
 
 }

@@ -10,7 +10,7 @@
 
 namespace avif {
 
-struct FileBox : public Box {
+struct FileBox {
   FileTypeBox fileTypeBox;
   MetaBox metaBox;
   std::vector<MediaDataBox> mediaDataBoxes;

@@ -9,7 +9,7 @@
 
 namespace avif{
 
-struct FileTypeBox {
+struct FileTypeBox : public Box {
   std::string majorBrand;
   uint32_t minorVersion;
   std::vector<std::string> compatibleBrands;

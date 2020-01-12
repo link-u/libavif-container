@@ -88,13 +88,6 @@ public:
     };
 
 private:
-  struct BoxHeader {
-    size_t beg;
-    size_t end;
-    uint32_t size;
-    uint32_t type;
-  };
-private:
   util::Logger& log_;
 private: // intermediate states
   std::vector<uint8_t> buffer_;
@@ -103,7 +96,7 @@ private: // parsed results
   FileBox fileBox_;
 
 private: // internal operations
-  BoxHeader readBoxHeader();
+  Box::Header readBoxHeader();
 
 private:
   std::shared_ptr<Result> result_;
@@ -135,7 +128,7 @@ private:
 
 private:
   void parseFullBoxHeader(FullBox& fullBox);
-  void warningUnknownBox(Parser::BoxHeader const& hdr);
+  void warningUnknownBox(Box::Header const& hdr);
 
 private:
   void parseFile();
@@ -149,7 +142,6 @@ private:
 
   void parseItemPropertiesBox(ItemPropertiesBox& box, size_t end);
 
-  void parseItemPropertyContainer(ItemPropertyContainer &container);
   void parseBoxInItemPropertyContainer(ItemPropertyContainer &container);
 
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);

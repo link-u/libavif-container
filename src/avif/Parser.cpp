@@ -36,26 +36,6 @@ std::string uint2str(uint32_t const code) {
 
 namespace avif {
 
-Parser::BoxHeader Parser::readBoxHeader() {
-  Parser::BoxHeader hdr{};
-  hdr.beg = this->pos();
-  hdr.size = readU32();
-  hdr.type = readU32();
-  if(hdr.size == 1) {
-    throw Error("LargeSize box is not supported.");
-  }
-  if(hdr.size == 0) {
-    hdr.end = this->buffer_.size();
-  } else {
-    hdr.end = hdr.beg + hdr.size;
-  }
-  if(hdr.end > this->buffer_.size()) {
-    throw Error("File corrupted. Detected at %s box, from %d to %d, but buffer.size = %d.", uint2str(hdr.type), hdr.beg, hdr.end, this->buffer_.size());
-  }
-  return hdr;
-}
-
-//-----------------------------------------------------------------------------
 constexpr uint32_t boxType(const char *str) {
   return str2uint(str);
 }
@@ -93,14 +73,15 @@ void Parser::parseFile() {
 }
 
 void Parser::parseBoxInFile() {
-  BoxHeader const hdr = readBoxHeader();
   FileBox& box = this->fileBox_;
+  Box::Header hdr = readBoxHeader();
   switch(hdr.type) {
     case boxType("ftyp"):
       // ISO/IEC 14496-12:2015(E)
       // 4.3 File Type Box
       // Quantity: Exactly one (but see below)
-      this->parseFileTypeBox(box.fileTypeBox, hdr.end);
+      box.fileTypeBox.hdr = hdr;
+      this->parseFileTypeBox(box.fileTypeBox, hdr.end());
       break;
     case boxType("free"):
     case boxType("skip"):
@@ -112,7 +93,8 @@ void Parser::parseBoxInFile() {
       // ISO/IEC 14496-12:2015(E)
       // 8.11.1
       // Quantity: Zero or one (in File, ‘moov’, and ‘trak’), One or more (in ‘meco’)
-      this->parseMetaBox(box.metaBox, hdr.end);
+      box.metaBox.hdr = hdr;
+      this->parseMetaBox(box.metaBox, hdr.end());
       break;
     }
     case boxType("mdat"): {
@@ -120,7 +102,8 @@ void Parser::parseBoxInFile() {
       // 8.1.1. Media Data Box
       // Quantity: Zero or more
       MediaDataBox mediaDataBox{};
-      this->parseMediaDataBox(mediaDataBox, hdr.end);
+      mediaDataBox.hdr = hdr;
+      this->parseMediaDataBox(mediaDataBox, hdr.end());
       box.mediaDataBoxes.emplace_back(mediaDataBox);
       break;
     }
@@ -128,7 +111,7 @@ void Parser::parseBoxInFile() {
       warningUnknownBox(hdr);
       break;
   }
-  this->seek(hdr.end);
+  this->seek(hdr.end());
 }
 
 void Parser::parseFileTypeBox(FileTypeBox& box, size_t const end) {
@@ -161,30 +144,34 @@ void Parser::parseMetaBox(MetaBox& box, size_t const end) {
 }
 
 void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
-  BoxHeader const hdr = readBoxHeader();
+  Box::Header const hdr = readBoxHeader();
   switch(hdr.type) {
     case boxType("hdlr"):
-      this->parseHandlerBox(box.handlerBox, hdr.end);
+      box.handlerBox.hdr = hdr;
+      this->parseHandlerBox(box.handlerBox, hdr.end());
       break;
     case boxType("iprp"):
       // 詳しい定義は、HEVCの仕様書買わないとわからん。
-      this->parseItemPropertiesBox(box.itemPropertiesBox, hdr.end);
+      box.itemPropertiesBox.hdr = hdr;
+      this->parseItemPropertiesBox(box.itemPropertiesBox, hdr.end());
       break;
     case boxType("iinf"):
       // 8.11.6 Item Information Box
       // See: ISOBMFF p.95
-      this->parseItemInfoBox(box.itemInfoBox, hdr.end);
+      box.itemInfoBox.hdr = hdr;
+      this->parseItemInfoBox(box.itemInfoBox, hdr.end());
       break;
     case boxType("iloc"):
       // 8.11.3 The Item Location Box
       // See: ISOBMFF p.91
-      this->parseItemLocationBox(box.itemLocationBox, hdr.end);
+      box.itemLocationBox.hdr = hdr;
+      this->parseItemLocationBox(box.itemLocationBox, hdr.end());
       break;
     default:
       warningUnknownBox(hdr);
       break;
   }
-  this->seek(hdr.end);
+  this->seek(hdr.end());
 }
 
 void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
@@ -219,57 +206,62 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
 
 void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertiesbox.cpp
-  this->parseItemPropertyContainer(box.itemPropertyContainer);
+  {
+    // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
+    Box::Header const hdr = readBoxHeader();
+    if(hdr.type != str2uint("ipco")) {
+      throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
+    }
+    box.itemPropertyContainer.hdr = hdr;
+    // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
+    while(this->pos() < hdr.end()) {
+      this->parseBoxInItemPropertyContainer(box.itemPropertyContainer);
+    }
+    this->seek(hdr.end());
+  }
   // read "ipma"s
   while(this->pos() < end) {
-    BoxHeader const hdr = readBoxHeader();
+    Box::Header const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipma")) {
       throw Error("ItemPropertyAssociation(ipma) expected, got %s", uint2str(hdr.type));
     }
     ItemPropertyAssociation itemPropertyAssociation{};
+    itemPropertyAssociation.hdr = hdr;
     this->parseItemPropertyAssociation(itemPropertyAssociation);
     box.itemPropertyAssociations.emplace_back(itemPropertyAssociation);
-    this->seek(hdr.end);
+    this->seek(hdr.end());
   }
-}
-
-void Parser::parseItemPropertyContainer(ItemPropertyContainer& container) {
-  // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
-  BoxHeader const hdr = readBoxHeader();
-  if(hdr.type != str2uint("ipco")) {
-    throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
-  }
-  while(this->pos() < hdr.end) {
-    this->parseBoxInItemPropertyContainer(container);
-  }
-  this->seek(hdr.end);
 }
 
 void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
   // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
-  BoxHeader const hdr = readBoxHeader();
+  Box::Header const hdr = readBoxHeader();
   switch(hdr.type) {
     case boxType("pasp"): {
       PixelAspectRatioBox box{};
-      this->parsePixelAspectRatioBox(box, hdr.end);
+      box.hdr = hdr;
+      this->parsePixelAspectRatioBox(box, hdr.end());
       container.properties.emplace_back(box);
       break;
     }
     case boxType("ispe"): {
       ImageSpatialExtentsProperty box{};
-      this->parseImageSpatialExtentsProperty(box, hdr.end);
+      box.hdr = hdr;
+      this->parseImageSpatialExtentsProperty(box, hdr.end());
       container.properties.emplace_back(box);
       break;
     }
     case boxType("pixi"): {
       PixelInformationProperty box{};
-      this->parsePixelInformationProperty(box, hdr.end);
+      box.hdr = hdr;
+      this->parsePixelInformationProperty(box, hdr.end());
       container.properties.emplace_back(box);
       break;
     }
     case boxType("av1C"): {
       AV1CodecConfigurationRecordBox box{};
-      this->parseAV1CodecConfigurationRecordBox(box, hdr.end);
+      box.hdr = hdr;
+      this->parseAV1CodecConfigurationRecordBox(box, hdr.end());
       container.properties.emplace_back(box);
       break;
     }
@@ -283,7 +275,7 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       warningUnknownBox(hdr);
       break;
   }
-  this->seek(hdr.end);
+  this->seek(hdr.end());
 }
 
 void Parser::parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t const end) {
@@ -378,14 +370,15 @@ void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
     entryCount = readU32();
   }
   for(uint32_t i = 0; i < entryCount; ++i) {
-    BoxHeader hdr = readBoxHeader();
+    Box::Header hdr = readBoxHeader();
     if(hdr.type != str2uint("infe")) {
       throw Error("'infe' expected in ItemInfoBox, got %s", uint2str(hdr.type));
     }
     ItemInfoEntry entry;
-    this->parseItemInfoEntry(entry, hdr.end);
+    entry.hdr = hdr;
+    this->parseItemInfoEntry(entry, hdr.end());
     box.itemInfos.emplace_back(std::move(entry));
-    this->seek(hdr.end);
+    this->seek(hdr.end());
   }
 }
 
@@ -505,13 +498,30 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
 }
 
 void Parser::parseMediaDataBox(MediaDataBox& box, size_t const end) {
-  box.beg = this->pos();
-  box.end = end;
+  box.offset = this->pos();
+  box.size = end - box.offset;
 }
 
 //-----------------------------------------------------------------------------
 // util
 //-----------------------------------------------------------------------------
+
+Box::Header Parser::readBoxHeader() {
+  Box::Header hdr{};
+  hdr.offset = this->pos();
+  hdr.size = readU32();
+  hdr.type = readU32();
+  if(hdr.size == 1) {
+    throw Error("LargeSize box is not supported.");
+  }
+  if(hdr.size == 0) {
+    hdr.size = this->buffer_.size() - hdr.offset;
+  }
+  if((hdr.end()) > this->buffer_.size()) {
+    throw Error("File corrupted. Detected at %s box, from %d to %d, but buffer.size = %d.", uint2str(hdr.type), hdr.offset, hdr.end(), this->buffer_.size());
+  }
+  return hdr;
+}
 
 void Parser::parseFullBoxHeader(FullBox& fullBox) {
   // See: ISOBMFF p.22
@@ -521,9 +531,9 @@ void Parser::parseFullBoxHeader(FullBox& fullBox) {
   fullBox.setFullBoxHeader(version, flags);
 }
 
-void Parser::warningUnknownBox(Parser::BoxHeader const& hdr) {
+void Parser::warningUnknownBox(Box::Header const& hdr) {
   std::string typeStr = uint2str(hdr.type);
-  log().warn("Unknown box type=%s(=0x%0lx) with size=%ld(%ld~%ld/%ld)", typeStr.c_str(), hdr.type, hdr.size, hdr.beg, hdr.end, this->buffer_.size());
+  log().warn("Unknown box type=%s(=0x%0lx) with size=%ld(%ld~%ld/%ld)", typeStr.c_str(), hdr.type, hdr.size, hdr.offset, hdr.end(), this->buffer_.size());
 }
 
 }
