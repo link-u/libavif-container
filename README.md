@@ -4,6 +4,13 @@ A library to manipulate avif container. It's for neither decoding nor encoding.
 
 Currently, it just supports **parsing** avif container. However, it also is planned to support **writing** avif files (not yet...).
 
+## Related repositories
+
+ - [link-u/davif](https://github.com/link-u/davif) - avif decoder, using dav1d directly.
+ - [link-u/cavif](https://github.com/link-u/cavif) - avif encoder, using libaom directly.
+ - [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images) - sample images from us.
+ - [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) - test files from Microsoft and Netflix.
+
 # How to use
 
 ## From CMake
@@ -36,10 +43,6 @@ MIT
  - ISO BMFF Byte Stream Format -  
    W3C Working Group Note 04 October 2016  
    https://www.w3.org/TR/mse-byte-stream-format-isobmff/
- - avif.js/mov.js - Kagami/avif.js
-   https://github.com/Kagami/avif.js/blob/500e3357e5d56750dbd4e40b3aee74b13207721e/mov.js
- - MP4のデータ構造 - Qiita  
-   https://qiita.com/daisukeoda/items/87f6b5e9427c3feeaabf
 
 ## AV1
  - AV1 Image File Format (AVIF)  
@@ -48,12 +51,16 @@ MIT
    https://aomediacodec.github.io/av1-isobmff/
 
 ## HEIF - MPEG-H Part 12 (ISO/IEC 23008-12)
+ - Information technology — High efficiency coding and media delivery in heterogeneous environments — Part 12: Image File Format  
+   https://www.iso.org/standard/66067.html
  - HEIF Technical Information - High Efficiency Image File Format  
    https://nokiatech.github.io/heif/technical.html
  - nokiatech/heif: High Efficiency Image File Format  
    https://github.com/nokiatech/heif/
- - Text of ISO/IEC CD 23008-12 Image File Format | MPEG  
-   https://mpeg.chiariglione.org/standards/mpeg-h/image-file-format/text-isoiec-cd-23008-12-image-file-format
+
+## MIAF - MPEG-A Part 22 (ISO/IEC 23000-22:2019)
+ - Information technology — Multimedia application format (MPEG-A) — Part 22: Multi-image application format (MIAF)
+   https://www.iso.org/standard/74417.html
 
 ## AVIF
  - [AVIF2018.pdf](https://people.xiph.org/~negge/AVIF2018.pdf)
