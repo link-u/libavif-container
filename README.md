@@ -1,8 +1,8 @@
 # libavif-container
 
-A library to manipulate avif container. It's for neither decoding nor encoding.
+A library to parsing and writing avif container.
 
-Currently, it just supports **parsing** avif container. However, it also is planned to support **writing** avif files (not yet...).
+(It is not for neither decoding nor encoding.)
 
 ## Related repositories
 
