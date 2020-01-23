@@ -55,6 +55,10 @@ add_library(
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+if (UNIX)
+    # FIXME(ledyba-z): workaround for gcc-8
+    target_link_libraries(libavif-container PRIVATE stdc++fs)
+endif (UNIX)
 
 ###############################################################################
 option(LIBAVIF_CONTAINER_BUILD_TESTS "Build the tests" OFF)
