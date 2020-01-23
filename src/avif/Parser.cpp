@@ -320,7 +320,7 @@ void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_
   }
 }
 
-void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t end) {
+void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t const end) {
   // ISO/IEC 14496-12:2015(E)
   // p.158
 
@@ -549,7 +549,7 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
   }
 }
 
-void Parser::parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t end) {
+void Parser::parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t const end) {
   parseFullBoxHeader(box);
   if(box.version() == 0) {
     box.itemID = readU16();
