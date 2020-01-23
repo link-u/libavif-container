@@ -174,7 +174,7 @@ void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox&
       (conf.chromaSamplePosition & 3u));
   bool initialPresentationDelayPresent = conf.initialPresentationDelayPresent && conf.initialPresentationDelay > 0;
   if (initialPresentationDelayPresent) {
-    putU8((1u << 4u) | (conf.initialPresentationDelay & 15u - 1));
+    putU8((1u << 4u) | ((conf.initialPresentationDelay & 15u) - 1));
   } else {
     putU8(0u);
   }
