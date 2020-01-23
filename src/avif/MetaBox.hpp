@@ -4,20 +4,24 @@
 
 #pragma once
 
+#include <optional>
+
 #include "Box.hpp"
 #include "FullBox.hpp"
 #include "HandlerBox.hpp"
 #include "ItemLocationBox.hpp"
 #include "ItemPropertiesBox.hpp"
 #include "ItemInfoBox.hpp"
+#include "PrimaryItemBox.hpp"
 
 namespace avif {
 
-struct MetaBox : public FullBox {
-  HandlerBox handlerBox;
-  ItemPropertiesBox itemPropertiesBox;
-  ItemLocationBox itemLocationBox;
-  ItemInfoBox itemInfoBox;
+struct MetaBox final : public FullBox {
+  HandlerBox handlerBox{};
+  ItemPropertiesBox itemPropertiesBox{};
+  ItemLocationBox itemLocationBox{};
+  std::optional<PrimaryItemBox> primaryItemBox{};
+  ItemInfoBox itemInfoBox{};
 };
 
 }

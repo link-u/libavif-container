@@ -16,6 +16,7 @@
 #include "FileBox.hpp"
 #include "FileTypeBox.hpp"
 #include "../../external/tinyformat/tinyformat.h"
+#include "PrimaryItemBox.hpp"
 
 namespace avif {
 
@@ -147,6 +148,7 @@ private:
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
+  void parseCleanApertureBox(CleanApertureBox& box, size_t end);
   void parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t end);
 
   void parseItemInfoBox(ItemInfoBox& box, size_t end);
@@ -154,10 +156,11 @@ private:
 
   void parseItemLocationBox(ItemLocationBox& box, size_t end);
 
+  void parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t end);
+
   void parseMediaDataBox(MediaDataBox& box, size_t end);
 
   void parseItemPropertyAssociation(ItemPropertyAssociation &assoc);
-
 };
 
 }

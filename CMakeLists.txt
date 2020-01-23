@@ -26,11 +26,13 @@ add_library(
         src/avif/HandlerBox.hpp
         src/avif/MediaDataBox.hpp
         src/avif/ItemLocationBox.hpp
+        src/avif/PrimaryItemBox.hpp
         src/avif/ItemPropertiesBox.hpp
         src/avif/ItemPropertyContainer.hpp
         src/avif/PixelAspectRatioBox.hpp
         src/avif/ImageSpatialExtentsProperty.hpp
         src/avif/PixelInformationProperty.hpp
+        src/avif/CleanApertureBox.hpp
         src/avif/ItemPropertyAssociation.hpp
         src/avif/AV1CodecConfigurationBox.hpp
         src/avif/ItemInfoBox.hpp

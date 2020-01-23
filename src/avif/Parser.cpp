@@ -15,6 +15,7 @@
 #include "ItemPropertyContainer.hpp"
 #include "ItemInfoExtension.hpp"
 #include "util/FourCC.hpp"
+#include "PrimaryItemBox.hpp"
 
 using avif::util::str2uint;
 using avif::util::uint2str;
@@ -136,7 +137,8 @@ void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
       this->parseHandlerBox(box.handlerBox, hdr.end());
       break;
     case boxType("iprp"):
-      // 詳しい定義は、HEVCの仕様書買わないとわからん。
+      // ISO/IEC 23008-12:2017 p.28
+      // 9.3 Item Properties Box
       box.itemPropertiesBox.hdr = hdr;
       this->parseItemPropertiesBox(box.itemPropertiesBox, hdr.end());
       break;
@@ -152,10 +154,21 @@ void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
       box.itemLocationBox.hdr = hdr;
       this->parseItemLocationBox(box.itemLocationBox, hdr.end());
       break;
+    case boxType("pitm"): {
+      // 8.11.3 The Item Location Box
+      // See: ISOBMFF p.80
+      PrimaryItemBox pitm{};
+      this->parsePrimaryItemBox(pitm, hdr.end());
+      box.primaryItemBox = pitm;
+      break;
+    }
     default:
       warningUnknownBox(hdr);
       break;
   }
+  // ISO/IEC 23008-12:2017 p.34
+  // 10.2 Image and image collection brands
+  // Note particularly that the brand 'mif1' does not mandate a MovieBox ('moov').
   this->seek(hdr.end());
 }
 
@@ -190,15 +203,14 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
 }
 
 void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
-  // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertiesbox.cpp
+  // ISO/IEC 23008-12:2017 p.28
+  // 9.3 Item Properties Box
   {
-    // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
     Box::Header const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipco")) {
       throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
     }
     box.itemPropertyContainer.hdr = hdr;
-    // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
     while(this->pos() < hdr.end()) {
       this->parseBoxInItemPropertyContainer(box.itemPropertyContainer);
     }
@@ -237,9 +249,21 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       break;
     }
     case boxType("pixi"): {
+      // ISO/IEC 23008-12:2017(E)
+      // p.13
+      // 6.5.6.1 Pixel information
       PixelInformationProperty box{};
       box.hdr = hdr;
       this->parsePixelInformationProperty(box, hdr.end());
+      container.properties.emplace_back(box);
+      break;
+    }
+    case boxType("clap"): {
+      // ISO/IEC 14496-12:2015(E)
+      // p.158
+      CleanApertureBox box{};
+      box.hdr = hdr;
+      this->parseCleanApertureBox(box, hdr.end());
       container.properties.emplace_back(box);
       break;
     }
@@ -271,14 +295,18 @@ void Parser::parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t const end
 }
 
 void Parser::parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty& prop, size_t const end) {
-  // https://github.com/nokiatech/heif/blob/master/srcs/common/pixelinformationproperty.cpp
+  // ISO/IEC 23008-12:2017(E)
+  // p.11
+  // 6.5.3 Image spatial extents
   parseFullBoxHeader(prop);
   prop.imageWidth = readU32();
   prop.imageHeight = readU32();
 }
 
 void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_t const end) {
-  // https://github.com/nokiatech/heif/blob/master/srcs/common/pixelinformationproperty.cpp
+  // ISO/IEC 23008-12:2017(E)
+  // p.13
+  // 6.5.6.1 Pixel information
   parseFullBoxHeader(prop);
   uint8_t const numChannels = readU8();
   for(uint8_t i =0; i < numChannels; ++i) {
@@ -286,6 +314,30 @@ void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_
   }
 }
 
+void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t end) {
+  // ISO/IEC 14496-12:2015(E)
+  // p.158
+
+  // a fractional number which defines the exact
+  // clean aperture width, in counted pixels, of the video image
+  box.cleanApertureWidthN = readU32();
+  box.cleanApertureWidthD = readU32();
+
+  // a fractional number which defines the
+  // exact clean aperture height, in counted pixels, of the video image
+  box.cleanApertureHeightN = readU32();
+  box.cleanApertureHeightD = readU32();
+
+  // a fractional number which defines the horizontal offset of clean
+  // aperture centre minus (width‐1)/2. Typically 0.
+  box.horizOffN = readU32();
+  box.horizOffD = readU32();
+
+  // a fractional number which defines the vertical offset of clean aperture
+  // centre minus (height‐1)/2. Typically 0.
+  box.vertOffN = readU32();
+  box.vertOffD = readU32();
+}
 
 void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t const end) {
 // https://aomediacodec.github.io/av1-isobmff/#av1codecconfigurationbox-section
@@ -480,6 +532,15 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
       item.extents.emplace_back(extent);
     }
     box.items.emplace_back(item);
+  }
+}
+
+void Parser::parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t end) {
+  parseFullBoxHeader(box);
+  if(box.version() == 0) {
+    box.itemID = readU16();
+  } else {
+    box.itemID = readU32();
   }
 }
 

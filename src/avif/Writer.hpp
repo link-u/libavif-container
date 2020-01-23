@@ -60,19 +60,19 @@ private:
 
   void writeItemPropertiesBox(ItemPropertiesBox& box);
   void writeItemPropertyContainer(ItemPropertyContainer& box);
-  void writePixelAspectRatioBox(PixelAspectRatioBox &box);
-  void writeImageSpatialExtentsProperty(ImageSpatialExtentsProperty &aProperty);
-  void writePixelInformationProperty(PixelInformationProperty &aProperty);
-  void writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox &box);
+  void writePixelAspectRatioBox(PixelAspectRatioBox& box);
+  void writeImageSpatialExtentsProperty(ImageSpatialExtentsProperty& box);
+  void writePixelInformationProperty(PixelInformationProperty& box);
+  void writeCleanApertureBox(CleanApertureBox &box);
+  void writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box);
   void writeItemPropertyAssociation(ItemPropertyAssociation& box);
 
   void writeItemInfoBox(ItemInfoBox& box);
-
   void writeItemInfoEntry(ItemInfoEntry& box);
-
   void writeItemLocationBox(ItemLocationBox& box);
+  void writePrimaryItemBox(PrimaryItemBox& box);
 
-  void writeMediaDataBox(MediaDataBox &box);
+  void writeMediaDataBox(MediaDataBox& box);
 };
 
 }

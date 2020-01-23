@@ -102,6 +102,9 @@ void Writer::writeMetaBox(MetaBox& box) {
   this->writeItemPropertiesBox(box.itemPropertiesBox);
   this->writeItemInfoBox(box.itemInfoBox);
   this->writeItemLocationBox(box.itemLocationBox);
+  if(box.primaryItemBox.has_value()) {
+    this->writePrimaryItemBox(box.primaryItemBox.value());
+  }
 }
 
 void Writer::writeHandlerBox(HandlerBox& box) {
@@ -131,6 +134,8 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
       this->writeImageSpatialExtentsProperty(std::get<ImageSpatialExtentsProperty>(prop));
     } else if (std::holds_alternative<PixelInformationProperty>(prop)) {
       this->writePixelInformationProperty(std::get<PixelInformationProperty>(prop));
+    } else if (std::holds_alternative<CleanApertureBox>(prop)) {
+      this->writeCleanApertureBox(std::get<CleanApertureBox>(prop));
     } else if (std::holds_alternative<AV1CodecConfigurationRecordBox>(prop)) {
       this->writeAV1CodecConfigurationRecordBox(std::get<AV1CodecConfigurationRecordBox>(prop));
     } else {
@@ -157,6 +162,17 @@ void Writer::writePixelInformationProperty(PixelInformationProperty& box) {
   for (auto& bpp : box.bitsPerChannel) {
     this->putU8(bpp);
   }
+}
+
+void Writer::writeCleanApertureBox(CleanApertureBox& box) {
+  putU32(box.cleanApertureWidthN);
+  putU32(box.cleanApertureWidthD);
+  putU32(box.cleanApertureHeightN);
+  putU32(box.cleanApertureHeightD);
+  putU32(box.horizOffN);
+  putU32(box.horizOffD);
+  putU32(box.vertOffN);
+  putU32(box.vertOffD);
 }
 
 void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box) {
@@ -339,6 +355,14 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
           throw std::runtime_error(tfm::format("Illegal length size=%d", box.lengthSize));
       }
     }
+  }
+}
+
+void Writer::writePrimaryItemBox(PrimaryItemBox& box) {
+  if(box.version() == 0){
+    putU16(box.itemID);
+  } else {
+    putU32(box.itemID);
   }
 }
 
