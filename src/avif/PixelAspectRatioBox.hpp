@@ -8,9 +8,9 @@
 
 namespace avif {
 
-struct PixelAspectRatioBox : public Box {
-  uint32_t hSpacing;
-  uint32_t vSpacing;
+struct PixelAspectRatioBox final : public Box {
+  uint32_t hSpacing{};
+  uint32_t vSpacing{};
 };
 
 }
