@@ -12,6 +12,7 @@
 #include "PixelInformationProperty.hpp"
 #include "AV1CodecConfigurationBox.hpp"
 #include "CleanApertureBox.hpp"
+#include "ImageRotation.hpp"
 
 namespace avif {
 
@@ -24,6 +25,7 @@ struct ItemPropertyContainer : public Box {
           ImageSpatialExtentsProperty,
           PixelInformationProperty,
           CleanApertureBox,
+          ImageRotation,
           AV1CodecConfigurationRecordBox>;
   std::vector<Property> properties;
 };

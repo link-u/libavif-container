@@ -34,6 +34,7 @@ add_library(
         src/avif/PixelInformationProperty.hpp
         src/avif/CleanApertureBox.hpp
         src/avif/ItemPropertyAssociation.hpp
+        src/avif/ImageRotation.hpp
         src/avif/AV1CodecConfigurationBox.hpp
         src/avif/ItemInfoBox.hpp
         src/avif/ItemInfoEntry.hpp

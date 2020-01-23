@@ -261,11 +261,17 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
     case boxType("clap"): {
       // ISO/IEC 14496-12:2015(E)
       // p.158
-      CleanApertureBox box{};
-      box.hdr = hdr;
-      this->parseCleanApertureBox(box, hdr.end());
-      container.properties.emplace_back(box);
+      CleanApertureBox clap{};
+      clap.hdr = hdr;
+      this->parseCleanApertureBox(clap, hdr.end());
+      container.properties.emplace_back(clap);
       break;
+    }
+    case boxType("irot"): {
+      ImageRotation irot;
+      irot.hdr = hdr;
+      this->parseImageRotation(irot, hdr.end());
+      container.properties.emplace_back(irot);
     }
     case boxType("av1C"): {
       AV1CodecConfigurationRecordBox box{};
@@ -337,6 +343,14 @@ void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t end) {
   // centre minus (height‐1)/2. Typically 0.
   box.vertOffN = readU32();
   box.vertOffD = readU32();
+}
+
+void Parser::parseImageRotation(ImageRotation& box, size_t const end) {
+  // ISO/IEC 23008-12:2017(E)
+  // p.15
+  // 6.5.10 Image rotation
+  box.angle = readU8() & 0x3u; // angle * 90
+  // angle * 90 specifies the angle (in anti-clockwise direction) in units of degrees.
 }
 
 void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t const end) {
