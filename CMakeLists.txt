@@ -18,6 +18,11 @@ add_library(
         src/avif/util/StreamWriter.cpp
         src/avif/util/StreamWriter.cpp
 
+        src/avif/img/Image.hpp
+        src/avif/img/Conversion.hpp
+        src/avif/img/Transform.hpp
+        src/avif/img/Crop.hpp
+
         src/avif/Box.hpp
         src/avif/FullBox.hpp
         src/avif/FileBox.hpp
