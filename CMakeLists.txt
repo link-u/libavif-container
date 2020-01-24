@@ -80,6 +80,7 @@ if(LIBAVIF_CONTAINER_BUILD_TESTS)
     add_executable(libavif-container-tests
             ${SRC_FILES}
             test/av1/ParseTest.cpp
+            test/ColorTest.cpp
             )
     target_link_libraries(libavif-container-tests PRIVATE libavif-container)
     target_link_libraries(libavif-container-tests PRIVATE gtest)

@@ -68,7 +68,7 @@ constexpr std::tuple<typename spec::RGB<rgbBits>::Type, typename spec::RGB<rgbBi
   using RGBType = typename spec::RGB<rgbBits>::Type;
 
   auto constexpr shift = static_cast<float>(1u << (yuvBits - 8u));
-  auto const y = ((static_cast<float>(*srcY) / shift) - 128.f) / 219.0f;
+  auto const y = ((static_cast<float>(*srcY) / shift) - 16.0f) / 219.0f;
   auto const u = ((static_cast<float>(srcU != nullptr ? (*srcU) : spec::YUV<yuvBits>::bias) / shift) - 128.0f) / 224.0f;
   auto const v = ((static_cast<float>(srcV != nullptr ? (*srcV) : spec::YUV<yuvBits>::bias) / shift) - 128.0f) / 224.0f;
 
