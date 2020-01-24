@@ -210,9 +210,10 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
     if(hdr.type != str2uint("ipco")) {
       throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
     }
-    box.itemPropertyContainer.hdr = hdr;
+    box.propertyContainers.hdr = hdr;
+    // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
     while(this->pos() < hdr.end()) {
-      this->parseBoxInItemPropertyContainer(box.itemPropertyContainer);
+      this->parseBoxInItemPropertyContainer(box.propertyContainers);
     }
     this->seek(hdr.end());
   }
@@ -225,7 +226,7 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
     ItemPropertyAssociation itemPropertyAssociation{};
     itemPropertyAssociation.hdr = hdr;
     this->parseItemPropertyAssociation(itemPropertyAssociation);
-    box.itemPropertyAssociations.emplace_back(itemPropertyAssociation);
+    box.associations.emplace_back(itemPropertyAssociation);
     this->seek(hdr.end());
   }
 }

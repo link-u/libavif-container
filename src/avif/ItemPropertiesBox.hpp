@@ -12,11 +12,12 @@
 
 namespace avif {
 
-// https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertiesbox.cpp
-// iprp
+// ISO/IEC 23008-12:2017(E)
+// p.29
+// iprp, ipma, ipco
 struct ItemPropertiesBox : public Box {
-  ItemPropertyContainer itemPropertyContainer;
-  std::vector<ItemPropertyAssociation> itemPropertyAssociations;
+  ItemPropertyContainer propertyContainers;
+  std::vector<ItemPropertyAssociation> associations;
 };
 
 }

@@ -119,8 +119,8 @@ void Writer::writeHandlerBox(HandlerBox& box) {
 
 void Writer::writeItemPropertiesBox(ItemPropertiesBox& box) {
   auto context = this->beginBoxHeader("iprp", box);
-  this->writeItemPropertyContainer(box.itemPropertyContainer);
-  for(auto& ipma : box.itemPropertyAssociations) {
+  this->writeItemPropertyContainer(box.propertyContainers);
+  for(auto& ipma : box.associations) {
     this->writeItemPropertyAssociation(ipma);
   }
 }
