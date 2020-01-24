@@ -17,7 +17,7 @@ TEST(ColorTest, RedTest) {
   uint8_t g = 0;
   uint8_t b = 0;
   std::tie(r,g,b) = detail::calcRGB<8,8>(&y, &u, &v);
-  ASSERT_EQ(255, r);
-  ASSERT_EQ(0, g);
-  //ASSERT_EQ(0, b);
+  ASSERT_TRUE(254 <= r);
+  ASSERT_TRUE(g <= 1);
+  ASSERT_TRUE(b <= 1);
 }
