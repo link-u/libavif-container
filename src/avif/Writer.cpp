@@ -97,14 +97,17 @@ void Writer::writeFileTypeBox(FileTypeBox& box) {
 }
 
 void Writer::writeMetaBox(MetaBox& box) {
+  // ISO/IEC 23008-12:2017(E)
+  // p.34
+  // 10.2 Image and image collection brands
   auto context = this->beginFullBoxHeader("meta", box);
   this->writeHandlerBox(box.handlerBox);
-  this->writeItemPropertiesBox(box.itemPropertiesBox);
-  this->writeItemInfoBox(box.itemInfoBox);
   this->writeItemLocationBox(box.itemLocationBox);
+  this->writeItemInfoBox(box.itemInfoBox);
   if(box.primaryItemBox.has_value()) {
     this->writePrimaryItemBox(box.primaryItemBox.value());
   }
+  this->writeItemPropertiesBox(box.itemPropertiesBox);
 }
 
 void Writer::writeHandlerBox(HandlerBox& box) {
