@@ -9,7 +9,13 @@
 namespace avif {
 
 struct ImageRotationBox final : public Box {
-  uint8_t angle{};
+  enum class Rotation : uint8_t {
+    Rot0   = 0,
+    Rot90  = 1,
+    Rot180 = 2,
+    Rot270 = 3,
+  };
+  Rotation angle{};
 };
 
 }

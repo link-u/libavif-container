@@ -11,11 +11,7 @@
 
 #include "Parser.hpp"
 #include "FileBox.hpp"
-#include "ItemPropertiesBox.hpp"
-#include "ItemPropertyContainer.hpp"
-#include "ItemInfoExtension.hpp"
 #include "util/FourCC.hpp"
-#include "PrimaryItemBox.hpp"
 
 using avif::util::str2uint;
 using avif::util::uint2str;
@@ -271,8 +267,15 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
     case boxType("irot"): {
       ImageRotationBox irot;
       irot.hdr = hdr;
-      this->parseImageRotation(irot, hdr.end());
+      this->parseImageRotationBox(irot, hdr.end());
       container.properties.emplace_back(irot);
+      break;
+    }
+    case boxType("imir"): {
+      ImageMirrorBox imir;
+      imir.hdr = hdr;
+      this->parseImageMirrorBox(imir, hdr.end());
+      container.properties.emplace_back(imir);
       break;
     }
     case boxType("av1C"): {
@@ -347,11 +350,19 @@ void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t const end) {
   box.vertOffD = readU32();
 }
 
-void Parser::parseImageRotation(ImageRotationBox& box, size_t const end) {
+void Parser::parseImageRotationBox(ImageRotationBox& box, size_t const end) {
   // ISO/IEC 23008-12:2017(E)
   // p.15
   // 6.5.10 Image rotation
-  box.angle = readU8() & 0x3u; // angle * 90
+  box.angle = static_cast<ImageRotationBox::Rotation>(readU8() & 0x3u); // angle * 90
+  // angle * 90 specifies the angle (in anti-clockwise direction) in units of degrees.
+}
+
+void Parser::parseImageMirrorBox(ImageMirrorBox& box, size_t const end) {
+  // ISO/IEC 23008-12:2017(E)
+  // p.16
+  // 6.5.12 Image rotation
+  box.axis = static_cast<ImageMirrorBox::Axis>(readU8() & 0x1u);
   // angle * 90 specifies the angle (in anti-clockwise direction) in units of degrees.
 }
 

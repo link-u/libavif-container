@@ -64,6 +64,8 @@ private:
   void writeImageSpatialExtentsProperty(ImageSpatialExtentsProperty& box);
   void writePixelInformationProperty(PixelInformationProperty& box);
   void writeCleanApertureBox(CleanApertureBox &box);
+  void writeImageRotationBox(ImageRotationBox &box);
+  void writeImageMirrorBox(ImageMirrorBox &box);
   void writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box);
   void writeItemPropertyAssociation(ItemPropertyAssociation& box);
 
@@ -73,8 +75,6 @@ private:
   void writePrimaryItemBox(PrimaryItemBox& box);
 
   void writeMediaDataBox(MediaDataBox& box);
-
-  void writeImageRotationBox(ImageRotationBox &box);
 };
 
 }

@@ -141,6 +141,8 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
       this->writeCleanApertureBox(std::get<CleanApertureBox>(prop));
     } else if (std::holds_alternative<ImageRotationBox>(prop)) {
       this->writeImageRotationBox(std::get<ImageRotationBox>(prop));
+    } else if (std::holds_alternative<ImageMirrorBox>(prop)) {
+      this->writeImageMirrorBox(std::get<ImageMirrorBox>(prop));
     } else if (std::holds_alternative<AV1CodecConfigurationRecordBox>(prop)) {
       this->writeAV1CodecConfigurationRecordBox(std::get<AV1CodecConfigurationRecordBox>(prop));
     } else {
@@ -183,7 +185,12 @@ void Writer::writeCleanApertureBox(CleanApertureBox& box) {
 
 void Writer::writeImageRotationBox(ImageRotationBox &box) {
   auto context = this->beginBoxHeader("irot", box);
-  putU8(box.angle);
+  putU8(static_cast<uint8_t>(box.angle));
+}
+
+void Writer::writeImageMirrorBox(ImageMirrorBox &box) {
+  auto context = this->beginBoxHeader("imir", box);
+  putU8(static_cast<uint8_t>(box.axis));
 }
 
 void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box) {
