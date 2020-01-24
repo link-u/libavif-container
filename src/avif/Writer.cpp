@@ -370,7 +370,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
 }
 
 void Writer::writePrimaryItemBox(PrimaryItemBox& box) {
-  auto context = this->beginBoxHeader("pitm", box);
+  auto context = this->beginFullBoxHeader("pitm", box);
   if(box.version() == 0){
     putU16(box.itemID);
   } else {
