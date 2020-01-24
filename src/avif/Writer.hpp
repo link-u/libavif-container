@@ -74,7 +74,7 @@ private:
 
   void writeMediaDataBox(MediaDataBox& box);
 
-  void writeImageRotationBox(ImageRotation &box);
+  void writeImageRotationBox(ImageRotationBox &box);
 };
 
 }

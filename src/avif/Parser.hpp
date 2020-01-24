@@ -149,7 +149,7 @@ private:
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
   void parseCleanApertureBox(CleanApertureBox& box, size_t end);
-  void parseImageRotation(ImageRotation &box, size_t end);
+  void parseImageRotation(ImageRotationBox &box, size_t end);
   void parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t end);
 
   void parseItemInfoBox(ItemInfoBox& box, size_t end);

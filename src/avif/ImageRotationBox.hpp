@@ -8,7 +8,7 @@
 
 namespace avif {
 
-struct ImageRotation final : public Box {
+struct ImageRotationBox final : public Box {
   uint8_t angle{};
 };
 

@@ -269,7 +269,7 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       break;
     }
     case boxType("irot"): {
-      ImageRotation irot;
+      ImageRotationBox irot;
       irot.hdr = hdr;
       this->parseImageRotation(irot, hdr.end());
       container.properties.emplace_back(irot);
@@ -346,7 +346,7 @@ void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t const end) {
   box.vertOffD = readU32();
 }
 
-void Parser::parseImageRotation(ImageRotation& box, size_t const end) {
+void Parser::parseImageRotation(ImageRotationBox& box, size_t const end) {
   // ISO/IEC 23008-12:2017(E)
   // p.15
   // 6.5.10 Image rotation
