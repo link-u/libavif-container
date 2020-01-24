@@ -273,6 +273,7 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       irot.hdr = hdr;
       this->parseImageRotation(irot, hdr.end());
       container.properties.emplace_back(irot);
+      break;
     }
     case boxType("av1C"): {
       AV1CodecConfigurationRecordBox box{};
