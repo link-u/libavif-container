@@ -136,6 +136,8 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
       this->writePixelInformationProperty(std::get<PixelInformationProperty>(prop));
     } else if (std::holds_alternative<CleanApertureBox>(prop)) {
       this->writeCleanApertureBox(std::get<CleanApertureBox>(prop));
+    } else if (std::holds_alternative<ImageRotation>(prop)) {
+      this->writeImageRotationBox(std::get<ImageRotation>(prop));
     } else if (std::holds_alternative<AV1CodecConfigurationRecordBox>(prop)) {
       this->writeAV1CodecConfigurationRecordBox(std::get<AV1CodecConfigurationRecordBox>(prop));
     } else {
@@ -165,6 +167,7 @@ void Writer::writePixelInformationProperty(PixelInformationProperty& box) {
 }
 
 void Writer::writeCleanApertureBox(CleanApertureBox& box) {
+  auto context = this->beginBoxHeader("clap", box);
   putU32(box.cleanApertureWidthN);
   putU32(box.cleanApertureWidthD);
   putU32(box.cleanApertureHeightN);
@@ -173,6 +176,11 @@ void Writer::writeCleanApertureBox(CleanApertureBox& box) {
   putU32(box.horizOffD);
   putU32(box.vertOffN);
   putU32(box.vertOffD);
+}
+
+void Writer::writeImageRotationBox(ImageRotation &box) {
+  auto context = this->beginBoxHeader("irot", box);
+  putU8(box.angle);
 }
 
 void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box) {

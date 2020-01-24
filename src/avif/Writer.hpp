@@ -73,6 +73,8 @@ private:
   void writePrimaryItemBox(PrimaryItemBox& box);
 
   void writeMediaDataBox(MediaDataBox& box);
+
+  void writeImageRotationBox(ImageRotation &box);
 };
 
 }
