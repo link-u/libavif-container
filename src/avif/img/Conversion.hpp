@@ -142,11 +142,7 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
       RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
       RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
       if (subX) {
-        if(x % 2 == 0) {
-          std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], &ptrU[x/2], &ptrV[x/2]);
-        } else {
-          std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], nullptr, nullptr);
-        }
+        std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], &ptrU[x/2], &ptrV[x/2]);
       } else {
         std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], &ptrU[x], &ptrV[x]);
       }
