@@ -38,21 +38,21 @@ struct RotateTrans<ImageRotationBox::Rotation::Rot0> {
 template <>
 struct RotateTrans<ImageRotationBox::Rotation::Rot90> {
   std::tuple <size_t, size_t> operator()(size_t srcWidth, size_t x, size_t srcHeight, size_t y) {
-    return std::make_tuple(y, x);
+    return std::make_tuple(srcWidth - y - 1, x);
   }
 };
 
 template <>
 struct RotateTrans<ImageRotationBox::Rotation::Rot180> {
   std::tuple <size_t, size_t> operator()(size_t srcWidth, size_t x, size_t srcHeight, size_t y) {
-    return std::make_tuple(srcWidth - x, srcHeight - y);
+    return std::make_tuple(srcWidth - x - 1, srcHeight - y - 1);
   }
 };
 
 template <>
 struct RotateTrans<ImageRotationBox::Rotation::Rot270> {
   std::tuple <size_t, size_t> operator()(size_t srcWidth, size_t x, size_t srcHeight, size_t y) {
-    return std::make_tuple(y, srcHeight - x);
+    return std::make_tuple(y, srcHeight - x - 1);
   }
 };
 
