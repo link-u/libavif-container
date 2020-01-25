@@ -15,14 +15,14 @@ template <ImageMirrorBox::Axis>
 template <>
 struct FlipTrans<ImageMirrorBox::Axis::Vertical> {
   std::tuple <size_t, size_t> operator()(size_t srcWidth, size_t x, size_t srcHeight, size_t y) {
-    return std::make_tuple(x, srcHeight - y);
+    return std::make_tuple(x, srcHeight - y - 1);
   }
 };
 
 template <>
 struct FlipTrans<ImageMirrorBox::Axis::Horizontal> {
   std::tuple <size_t,size_t> operator()(size_t srcWidth, size_t x, size_t srcHeight, size_t y) {
-    return std::make_tuple(srcWidth - x, y);
+    return std::make_tuple(srcWidth - x - 1, y);
   }
 };
 
