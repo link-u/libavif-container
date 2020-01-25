@@ -21,6 +21,7 @@ add_library(
         src/avif/img/Image.hpp
         src/avif/img/Conversion.hpp
         src/avif/img/Transform.hpp
+        src/avif/img/TransformImpl.hpp
         src/avif/img/Crop.hpp
 
         src/avif/Box.hpp
