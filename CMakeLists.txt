@@ -41,6 +41,9 @@ add_library(
         src/avif/ItemPropertyAssociation.hpp
         src/avif/ImageRotationBox.hpp
         src/avif/ImageMirrorBox.hpp
+        src/avif/ColourInformationBox.hpp
+        src/avif/ContentLightLevelBox.hpp
+        src/avif/MasteringDisplayColourVolumeBox.hpp
         src/avif/AV1CodecConfigurationBox.hpp
         src/avif/ItemInfoBox.hpp
         src/avif/ItemInfoEntry.hpp

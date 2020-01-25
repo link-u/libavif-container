@@ -66,6 +66,9 @@ private:
   void writeCleanApertureBox(CleanApertureBox &box);
   void writeImageRotationBox(ImageRotationBox &box);
   void writeImageMirrorBox(ImageMirrorBox &box);
+  void writeColourInformationBox(ColourInformationBox& box);
+  void writeContentLightLevelBox(ContentLightLevelBox& box);
+  void writeMasteringDisplayColourVolumeBox(MasteringDisplayColourVolumeBox& box);
   void writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box);
   void writeItemPropertyAssociation(ItemPropertyAssociation& box);
 

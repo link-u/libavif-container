@@ -18,6 +18,9 @@
 #include "../../external/tinyformat/tinyformat.h"
 #include "PrimaryItemBox.hpp"
 #include "ImageMirrorBox.hpp"
+#include "ColourInformationBox.hpp"
+#include "ContentLightLevelBox.hpp"
+#include "MasteringDisplayColourVolumeBox.hpp"
 
 namespace avif {
 
@@ -152,6 +155,9 @@ private:
   void parseCleanApertureBox(CleanApertureBox& box, size_t end);
   void parseImageRotationBox(ImageRotationBox &box, size_t end);
   void parseImageMirrorBox(ImageMirrorBox& box, size_t end);
+  void parseColourInformationBox(ColourInformationBox& box, uint32_t end);
+  void parseContentLightLevelBox(ContentLightLevelBox& box, uint32_t end);
+  void parseMasteringDisplayColourVolumeBox(MasteringDisplayColourVolumeBox& box, uint32_t end);
   void parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t end);
 
   void parseItemInfoBox(ItemInfoBox& box, size_t end);

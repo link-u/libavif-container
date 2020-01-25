@@ -143,6 +143,12 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
       this->writeImageRotationBox(std::get<ImageRotationBox>(prop));
     } else if (std::holds_alternative<ImageMirrorBox>(prop)) {
       this->writeImageMirrorBox(std::get<ImageMirrorBox>(prop));
+    } else if (std::holds_alternative<ColourInformationBox>(prop)) {
+      this->writeColourInformationBox(std::get<ColourInformationBox>(prop));
+    } else if (std::holds_alternative<ContentLightLevelBox>(prop)) {
+      this->writeContentLightLevelBox(std::get<ContentLightLevelBox>(prop));
+    } else if (std::holds_alternative<MasteringDisplayColourVolumeBox>(prop)) {
+      this->writeMasteringDisplayColourVolumeBox(std::get<MasteringDisplayColourVolumeBox>(prop));
     } else if (std::holds_alternative<AV1CodecConfigurationRecordBox>(prop)) {
       this->writeAV1CodecConfigurationRecordBox(std::get<AV1CodecConfigurationRecordBox>(prop));
     } else {
@@ -183,14 +189,50 @@ void Writer::writeCleanApertureBox(CleanApertureBox& box) {
   putU32(box.vertOffD);
 }
 
-void Writer::writeImageRotationBox(ImageRotationBox &box) {
+void Writer::writeImageRotationBox(ImageRotationBox& box) {
   auto context = this->beginBoxHeader("irot", box);
   putU8(static_cast<uint8_t>(box.angle));
 }
 
-void Writer::writeImageMirrorBox(ImageMirrorBox &box) {
+void Writer::writeImageMirrorBox(ImageMirrorBox& box) {
   auto context = this->beginBoxHeader("imir", box);
   putU8(static_cast<uint8_t>(box.axis));
+}
+
+void Writer::writeColourInformationBox(ColourInformationBox& box) {
+  auto context = this->beginBoxHeader("colr", box);
+  if(std::holds_alternative<ColourInformationBox::NCLX>(box.profile)) {
+    putU32(str2uint("nclx"));
+    auto const& nclx = std::get<ColourInformationBox::NCLX>(box.profile);
+    putU16(nclx.colourPrimaries);
+    putU16(nclx.transferCharacteristics);
+    putU16(nclx.matrixCoefficients);
+    putU8(nclx.fullRangeFlag ? 0x80 : 0x00);
+  } else if (std::holds_alternative<ColourInformationBox::RestrictedICC>(box.profile)) {
+    putU32(str2uint("rICC"));
+    append(std::get<ColourInformationBox::RestrictedICC>(box.profile).payload);
+  } else if (std::holds_alternative<ColourInformationBox::UnrestrictedICC>(box.profile)) {
+    putU32(str2uint("prof"));
+    append(std::get<ColourInformationBox::UnrestrictedICC>(box.profile).payload);
+  } else {
+    throw std::logic_error("Color profile not set.");
+  }
+}
+void Writer::writeContentLightLevelBox(ContentLightLevelBox& box) {
+  auto context = this->beginBoxHeader("clli", box);
+  putU16(box.maxContentLightLevel);
+  putU16(box.maxPicAverageLightLevel);
+}
+void Writer::writeMasteringDisplayColourVolumeBox(MasteringDisplayColourVolumeBox& box) {
+  auto context = this->beginBoxHeader("mdcv", box);
+  for(int c = 0; c < 3; ++c) {
+    putU16(box.displayPrimariesX[c]);
+    putU16(box.displayPrimariesY[c]);
+  }
+  putU16(box.whitePointX);
+  putU16(box.whitePointY);
+  putU32(box.maxDisplayMasteringLuminance);
+  putU32(box.minDisplayMasteringLuminance);
 }
 
 void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box) {

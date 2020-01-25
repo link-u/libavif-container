@@ -12,6 +12,7 @@
 #include "Parser.hpp"
 #include "FileBox.hpp"
 #include "util/FourCC.hpp"
+#include "ColourInformationBox.hpp"
 
 using avif::util::str2uint;
 using avif::util::uint2str;
@@ -278,6 +279,27 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       container.properties.emplace_back(imir);
       break;
     }
+    case boxType("colr"): {
+      ColourInformationBox colr;
+      colr.hdr = hdr;
+      this->parseColourInformationBox(colr, hdr.end());
+      container.properties.emplace_back(colr);
+      break;
+    }
+    case boxType("clli"): {
+      ContentLightLevelBox clli;
+      clli.hdr = hdr;
+      this->parseContentLightLevelBox(clli, hdr.end());
+      container.properties.emplace_back(clli);
+      break;
+    }
+    case boxType("mdcv"): {
+      MasteringDisplayColourVolumeBox mdcv;
+      mdcv.hdr = hdr;
+      this->parseMasteringDisplayColourVolumeBox(mdcv, hdr.end());
+      container.properties.emplace_back(mdcv);
+      break;
+    }
     case boxType("av1C"): {
       AV1CodecConfigurationRecordBox box{};
       box.hdr = hdr;
@@ -364,6 +386,54 @@ void Parser::parseImageMirrorBox(ImageMirrorBox& box, size_t const end) {
   // 6.5.12 Image rotation
   box.axis = static_cast<ImageMirrorBox::Axis>(readU8() & 0x1u);
   // angle * 90 specifies the angle (in anti-clockwise direction) in units of degrees.
+}
+
+void Parser::parseColourInformationBox(ColourInformationBox& box, uint32_t end) {
+  // ISO/IEC 14496-12:2015(E)
+  // p/159
+  // 12.1.5 Colour information
+  uint32_t const colourType = readU32();
+  switch(colourType) {
+    case str2uint("nclx"): {
+      ColourInformationBox::NCLX nclx{};
+      nclx.colourPrimaries = readU16();
+      nclx.transferCharacteristics = readU16();
+      nclx.matrixCoefficients = readU16();
+      nclx.fullRangeFlag = 0x80u == (readU8() & 0x80u);
+      box.profile = nclx;
+      break;
+    }
+    case str2uint("rICC"): {
+      std::vector<uint8_t> data(std::next(buffer_.begin(), pos()), std::next(buffer_.begin(), end));
+      box.profile = ColourInformationBox::RestrictedICC {
+        .payload = std::move(data),
+      };
+      break;
+    }
+    case str2uint("prof"): {
+      std::vector<uint8_t> data(std::next(buffer_.begin(), pos()), std::next(buffer_.begin(), end));
+      box.profile = ColourInformationBox::UnrestrictedICC {
+          .payload = std::move(data),
+      };
+      break;
+    }
+    default:
+      throw Error("Unknown profile type: %s", uint2str(colourType));
+  }
+}
+void Parser::parseContentLightLevelBox(ContentLightLevelBox& box, uint32_t end) {
+  box.maxContentLightLevel = readU16();
+  box.maxPicAverageLightLevel = readU16();
+}
+void Parser::parseMasteringDisplayColourVolumeBox(MasteringDisplayColourVolumeBox& box, uint32_t end) {
+  for(int c = 0; c < 3; ++c) {
+    box.displayPrimariesX[c] = readU16();
+    box.displayPrimariesY[c] = readU16();
+  }
+  box.whitePointX = readU16();
+  box.whitePointY = readU16();
+  box.maxDisplayMasteringLuminance = readU32();
+  box.minDisplayMasteringLuminance = readU32();
 }
 
 void Parser::parseAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox& box, size_t const end) {
