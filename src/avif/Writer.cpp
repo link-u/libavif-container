@@ -179,13 +179,13 @@ void Writer::writePixelInformationProperty(PixelInformationProperty& box) {
 
 void Writer::writeCleanApertureBox(CleanApertureBox& box) {
   auto context = this->beginBoxHeader("clap", box);
-  putU32(box.cleanApertureWidthN);
+  putU32(static_cast<uint32_t>(box.cleanApertureWidthN));
   putU32(box.cleanApertureWidthD);
-  putU32(box.cleanApertureHeightN);
+  putU32(static_cast<uint32_t>(box.cleanApertureHeightN));
   putU32(box.cleanApertureHeightD);
-  putU32(box.horizOffN);
+  putU32(static_cast<uint32_t>(box.horizOffN));
   putU32(box.horizOffD);
-  putU32(box.vertOffN);
+  putU32(static_cast<uint32_t>(box.vertOffN));
   putU32(box.vertOffD);
 }
 
