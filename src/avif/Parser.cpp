@@ -353,22 +353,22 @@ void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t const end) {
 
   // a fractional number which defines the exact
   // clean aperture width, in counted pixels, of the video image
-  box.cleanApertureWidthN = readU32();
+  box.cleanApertureWidthN = static_cast<int32_t>(readU32());
   box.cleanApertureWidthD = readU32();
 
   // a fractional number which defines the
   // exact clean aperture height, in counted pixels, of the video image
-  box.cleanApertureHeightN = readU32();
+  box.cleanApertureHeightN = static_cast<int32_t>(readU32());
   box.cleanApertureHeightD = readU32();
 
   // a fractional number which defines the horizontal offset of clean
   // aperture centre minus (width‐1)/2. Typically 0.
-  box.horizOffN = readU32();
+  box.horizOffN = static_cast<int32_t>(readU32());
   box.horizOffD = readU32();
 
   // a fractional number which defines the vertical offset of clean aperture
   // centre minus (height‐1)/2. Typically 0.
-  box.vertOffN = readU32();
+  box.vertOffN = static_cast<int32_t>(readU32());
   box.vertOffD = readU32();
 }
 
