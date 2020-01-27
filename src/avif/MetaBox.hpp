@@ -13,6 +13,7 @@
 #include "ItemPropertiesBox.hpp"
 #include "ItemInfoBox.hpp"
 #include "PrimaryItemBox.hpp"
+#include "ItemReferenceBox.hpp"
 
 namespace avif {
 
@@ -22,6 +23,7 @@ struct MetaBox final : public FullBox {
   ItemLocationBox itemLocationBox{};
   std::optional<PrimaryItemBox> primaryItemBox{};
   ItemInfoBox itemInfoBox{};
+  std::optional<ItemReferenceBox> itemReferenceBox{};
 };
 
 }

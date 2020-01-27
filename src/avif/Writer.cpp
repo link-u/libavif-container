@@ -107,6 +107,9 @@ void Writer::writeMetaBox(MetaBox& box) {
   if(box.primaryItemBox.has_value()) {
     this->writePrimaryItemBox(box.primaryItemBox.value());
   }
+  if(box.itemReferenceBox.has_value()) {
+    this->writeItemReferenceBox(box.itemReferenceBox.value());
+  }
   this->writeItemPropertiesBox(box.itemPropertiesBox);
 }
 
@@ -440,6 +443,33 @@ void Writer::writePrimaryItemBox(PrimaryItemBox& box) {
     putU16(box.itemID);
   } else {
     putU32(box.itemID);
+  }
+}
+
+void Writer::writeItemReferenceBox(ItemReferenceBox& box) {
+  bool isLarge = std::holds_alternative<std::vector<SingleItemTypeReferenceBoxLarge>>(box.references);
+  box.setFullBoxHeader(isLarge ? 1 : 0, 0);
+  auto context = this->beginFullBoxHeader("iref", box);
+  if(isLarge) {
+    auto& items = std::get<std::vector<SingleItemTypeReferenceBoxLarge>>(box.references);
+    for(auto& item : items) {
+      auto itemContext = this->beginFullBoxHeader(uint2str(item.hdr.type).c_str(), box);
+      putU32(item.fromItemID);
+      putU16(item.toItemIDs.size());
+      for(uint32_t& toItemID : item.toItemIDs) {
+        putU32(toItemID);
+      }
+    }
+  } else {
+    auto& items = std::get<std::vector<SingleItemTypeReferenceBox>>(box.references);
+    for(auto& item : items) {
+      auto itemContext = this->beginFullBoxHeader(uint2str(item.hdr.type).c_str(), box);
+      putU16(item.fromItemID);
+      putU16(item.toItemIDs.size());
+      for(uint16_t& toItemID : item.toItemIDs) {
+        putU16(toItemID);
+      }
+    }
   }
 }
 

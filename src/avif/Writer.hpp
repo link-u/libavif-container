@@ -7,6 +7,7 @@
 #include "util/Logger.hpp"
 #include "util/StreamWriter.hpp"
 #include "FileBox.hpp"
+#include "ItemReferenceBox.hpp"
 
 namespace avif {
 
@@ -78,6 +79,7 @@ private:
   void writeItemInfoEntry(ItemInfoEntry& box);
   void writeItemLocationBox(ItemLocationBox& box);
   void writePrimaryItemBox(PrimaryItemBox& box);
+  void writeItemReferenceBox(ItemReferenceBox& box);
 
   void writeMediaDataBox(MediaDataBox& box);
 };

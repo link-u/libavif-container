@@ -13,6 +13,7 @@
 #include "FileBox.hpp"
 #include "util/FourCC.hpp"
 #include "ColourInformationBox.hpp"
+#include "ItemReferenceBox.hpp"
 
 using avif::util::str2uint;
 using avif::util::uint2str;
@@ -152,11 +153,19 @@ void Parser::parseBoxInMeta(MetaBox& box, size_t const endOfBox) {
       this->parseItemLocationBox(box.itemLocationBox, hdr.end());
       break;
     case boxType("pitm"): {
-      // 8.11.3 The Item Location Box
+      // 8.11.4 Primary Item Box
       // See: ISOBMFF p.80
       PrimaryItemBox pitm{};
       this->parsePrimaryItemBox(pitm, hdr.end());
       box.primaryItemBox = pitm;
+      break;
+    }
+    case boxType("iref"): {
+      // 8.11.12 Item Reference Box
+      // See: ISOBMFF p.87
+      ItemReferenceBox iref{};
+      this->parseItemReferenceBox(iref, hdr.end());
+      box.itemReferenceBox = iref;
       break;
     }
     default:
@@ -665,12 +674,45 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
   }
 }
 
-void Parser::parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t const end) {
+void Parser::parsePrimaryItemBox(PrimaryItemBox& box, size_t const end) {
   parseFullBoxHeader(box);
   if(box.version() == 0) {
     box.itemID = readU16();
   } else {
     box.itemID = readU32();
+  }
+}
+void Parser::parseItemReferenceBox(ItemReferenceBox& box, size_t const end) {
+  parseFullBoxHeader(box);
+  if(box.version() == 0) {
+    std::vector<SingleItemTypeReferenceBox> items;
+    while(this->pos() < end) {
+      SingleItemTypeReferenceBox item;
+      item.hdr = readBoxHeader();
+      item.fromItemID = readU16();
+      size_t const referenceCount = readU16();
+      for(size_t i = 0; i < referenceCount; ++i) {
+        uint16_t const toID = readU16();
+        item.toItemIDs.emplace_back(toID);
+      }
+      this->seek(item.hdr.end());
+      items.emplace_back(item);
+    }
+    box.references = std::move(items);
+  } else {
+    std::vector<SingleItemTypeReferenceBoxLarge> items;
+    while(this->pos() < end) {
+      SingleItemTypeReferenceBoxLarge item;
+      item.hdr = readBoxHeader();
+      item.fromItemID = readU32();
+      size_t const referenceCount = readU16();
+      for(size_t i = 0; i < referenceCount; ++i) {
+        uint32_t const toID = readU16();
+        item.toItemIDs.emplace_back(toID);
+      }
+      this->seek(item.hdr.end());
+    }
+    box.references = std::move(items);
   }
 }
 

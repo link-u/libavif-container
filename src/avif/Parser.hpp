@@ -21,6 +21,7 @@
 #include "ColourInformationBox.hpp"
 #include "ContentLightLevelBox.hpp"
 #include "MasteringDisplayColourVolumeBox.hpp"
+#include "ItemReferenceBox.hpp"
 
 namespace avif {
 
@@ -167,7 +168,9 @@ private:
 
   void parseItemLocationBox(ItemLocationBox& box, size_t end);
 
-  void parsePrimaryItemBox(avif::PrimaryItemBox& box, size_t end);
+  void parsePrimaryItemBox(PrimaryItemBox& box, size_t end);
+
+  void parseItemReferenceBox(ItemReferenceBox& box, size_t end);
 
   void parseMediaDataBox(MediaDataBox& box, size_t end);
 
