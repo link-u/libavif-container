@@ -17,6 +17,8 @@
 #include "ColourInformationBox.hpp"
 #include "ContentLightLevelBox.hpp"
 #include "MasteringDisplayColourVolumeBox.hpp"
+#include "RelativeLocationProperty.hpp"
+#include "AuxiliaryTypeProperty.hpp"
 
 namespace avif {
 
@@ -28,6 +30,8 @@ struct ItemPropertyContainer : public Box {
           PixelAspectRatioBox,
           ImageSpatialExtentsProperty,
           PixelInformationProperty,
+          RelativeLocationProperty,
+          AuxiliaryTypeProperty,
           CleanApertureBox,
           ImageRotationBox,
           ImageMirrorBox,

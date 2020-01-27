@@ -152,6 +152,8 @@ private:
   void parsePixelAspectRatioBox(PixelAspectRatioBox& box, size_t end);
   void parseImageSpatialExtentsProperty(ImageSpatialExtentsProperty &prop, size_t end);
   void parsePixelInformationProperty(PixelInformationProperty& prop, size_t end);
+  void parseRelativeLocationProperty(RelativeLocationProperty& rloc, size_t end);
+  void parseAuxiliaryTypeProperty(AuxiliaryTypeProperty& aux, size_t end);
   void parseCleanApertureBox(CleanApertureBox& box, size_t end);
   void parseImageRotationBox(ImageRotationBox &box, size_t end);
   void parseImageMirrorBox(ImageMirrorBox& box, size_t end);

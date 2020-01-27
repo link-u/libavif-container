@@ -184,10 +184,13 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
   box.name = readString();
   switch(handlerType) {
     case str2uint("pict"):
-      // よくわからんが、これで正しいらしい
-      // たぶんHEIFの仕様書に書いてある…
-      // https://github.com/AOMediaCodec/libavif/blob/c673f2e884e635ff8e9b2c2951a2dddd2a00ffc3/src/write.c#L185
-      // https://github.com/Kagami/avif.js/blob/500e3357e5d56750dbd4e40b3aee74b13207721e/mov.js#L49
+      // 6.2 Derivation from the ISO base media file format
+      // p.8
+      // The handler type for the MetaBox shall be 'pict'.
+      // 7 Image sequences
+      // p.21
+      // the handler type in the HandlerBox of the track is 'pict' to indicate an image
+      // sequence track.
       box.handler = "pict";
       break;
     case str2uint("null"):
@@ -255,6 +258,18 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       this->parsePixelInformationProperty(box, hdr.end());
       container.properties.emplace_back(box);
       break;
+    }
+    case boxType("rloc"): {
+      RelativeLocationProperty rloc{};
+      rloc.hdr = hdr;
+      this->parseRelativeLocationProperty(rloc, hdr.end());
+      container.properties.emplace_back(rloc);
+    }
+    case boxType("auxC"): {
+      AuxiliaryTypeProperty aux{};
+      aux.hdr = hdr;
+      this->parseAuxiliaryTypeProperty(aux, hdr.end());
+      container.properties.emplace_back(aux);
     }
     case boxType("clap"): {
       // ISO/IEC 14496-12:2015(E)
@@ -345,6 +360,24 @@ void Parser::parsePixelInformationProperty(PixelInformationProperty& prop, size_
   for(uint8_t i =0; i < numChannels; ++i) {
     prop.bitsPerChannel.emplace_back(readU8());
   }
+}
+
+void Parser::parseRelativeLocationProperty(RelativeLocationProperty& rloc, size_t const end) {
+  // ISO/IEC 23008-12:2017(E)
+  // p.14
+  // 6.5.7 Relative location
+  parseFullBoxHeader(rloc);
+  rloc.horizontalOffset = readU32();
+  rloc.verticalOffset = readU32();
+}
+
+void Parser::parseAuxiliaryTypeProperty(AuxiliaryTypeProperty& aux, size_t const end) {
+  // ISO/IEC 23008-12:2017(E)
+  // p.14
+  // 6.5.7 Relative location
+  parseFullBoxHeader(aux);
+  aux.auxType = readString();
+  aux.auxSubtype = std::vector<uint8_t>(std::next(std::begin(buffer_), pos()), std::next(std::begin(buffer_), end));
 }
 
 void Parser::parseCleanApertureBox(CleanApertureBox& box, size_t const end) {

@@ -63,6 +63,8 @@ private:
   void writePixelAspectRatioBox(PixelAspectRatioBox& box);
   void writeImageSpatialExtentsProperty(ImageSpatialExtentsProperty& box);
   void writePixelInformationProperty(PixelInformationProperty& box);
+  void writeRelativeLocationProperty(RelativeLocationProperty& rloc);
+  void writeAuxiliaryTypeProperty(AuxiliaryTypeProperty& aux);
   void writeCleanApertureBox(CleanApertureBox &box);
   void writeImageRotationBox(ImageRotationBox &box);
   void writeImageMirrorBox(ImageMirrorBox &box);

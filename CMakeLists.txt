@@ -38,6 +38,8 @@ add_library(
         src/avif/PixelAspectRatioBox.hpp
         src/avif/ImageSpatialExtentsProperty.hpp
         src/avif/PixelInformationProperty.hpp
+        src/avif/RelativeLocationProperty.hpp
+        src/avif/AuxiliaryTypeProperty.hpp
         src/avif/CleanApertureBox.hpp
         src/avif/ItemPropertyAssociation.hpp
         src/avif/ImageRotationBox.hpp

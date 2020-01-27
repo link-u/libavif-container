@@ -137,6 +137,10 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
       this->writeImageSpatialExtentsProperty(std::get<ImageSpatialExtentsProperty>(prop));
     } else if (std::holds_alternative<PixelInformationProperty>(prop)) {
       this->writePixelInformationProperty(std::get<PixelInformationProperty>(prop));
+    } else if (std::holds_alternative<RelativeLocationProperty>(prop)) {
+      this->writeRelativeLocationProperty(std::get<RelativeLocationProperty>(prop));
+    } else if (std::holds_alternative<AuxiliaryTypeProperty>(prop)) {
+      this->writeAuxiliaryTypeProperty(std::get<AuxiliaryTypeProperty>(prop));
     } else if (std::holds_alternative<CleanApertureBox>(prop)) {
       this->writeCleanApertureBox(std::get<CleanApertureBox>(prop));
     } else if (std::holds_alternative<ImageRotationBox>(prop)) {
@@ -175,6 +179,18 @@ void Writer::writePixelInformationProperty(PixelInformationProperty& box) {
   for (auto& bpp : box.bitsPerChannel) {
     this->putU8(bpp);
   }
+}
+
+void Writer::writeRelativeLocationProperty(RelativeLocationProperty& rloc){
+  auto context = this->beginFullBoxHeader("rloc", rloc);
+  this->putU32(rloc.horizontalOffset);
+  this->putU32(rloc.verticalOffset);
+}
+
+void Writer::writeAuxiliaryTypeProperty(AuxiliaryTypeProperty& aux) {
+  auto context = this->beginFullBoxHeader("auxC", aux);
+  this->putString(aux.auxType);
+  this->append(aux.auxSubtype);
 }
 
 void Writer::writeCleanApertureBox(CleanApertureBox& box) {
