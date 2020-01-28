@@ -12,6 +12,7 @@ jobs:
     - name: Checkout submodules
       shell: bash
       run: |
+        sed -i -e 's/git\@github\.com\:/https\:\/\/github.com\//g' .gitmodules
         git submodule sync --recursive
         git submodule update --init --force --recursive
     - name: configure
