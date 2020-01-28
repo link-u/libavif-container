@@ -18,9 +18,9 @@ jobs:
     - name: Install gcc-8 g++-8
       shell: bash
       run: |
-        sudo apt install gcc-8 g++-8
+        sudo apt install -y gcc-8 g++-8
     - name: configure
-      run: CXX=g++-8 CC=gcc-8 cmake -S . -B build/
+      run: CXX=g++-8 CC=gcc-8 cmake -S . -B build/ -DLIBAVIF_CONTAINER_BUILD_TESTS=ON
     - name: make
       run: env --chdir build make
     - name: ctest
