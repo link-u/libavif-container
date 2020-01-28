@@ -1,0 +1,20 @@
+name: CI with GTest
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+      with: 
+        submodules: true
+    - name: configure
+      run: cmake -S . -B build/
+    - name: make
+      run: make
+    - name: ctest
+      run: env --chdir cmake-build-debug ctest
+
