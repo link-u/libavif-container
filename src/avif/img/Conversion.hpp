@@ -30,6 +30,23 @@ template <> struct YUV<12> {
   static constexpr uint16_t bias = 2048;
 };
 
+
+template <typename T, bool subX, bool subY>
+struct ChromaSampler {
+  static_assert(!std::is_pointer<T>::value);
+  static constexpr bool isConst = std::is_const<T>::value;
+  using LineType = typename std::conditional<isConst, const uint8_t, uint8_t>::type;
+  constexpr LineType* nextLine(LineType* const currentLine, size_t const stride, size_t const y) {
+    return currentLine == nullptr ? nullptr :
+           subY                   ? (y % 2 == 1 ? currentLine + stride : currentLine) :
+                                    (currentLine + stride);
+  }
+  constexpr T* pixelInLine(T* currentLine, size_t const x) {
+    return currentLine == nullptr ? nullptr :
+                                    currentLine + (subX ? (x/2) : x);
+  }
+};
+
 }
 
 namespace detail{
@@ -42,7 +59,6 @@ constexpr T clamp(T value, T low, T high) {
 template <size_t rgbBits, size_t yuvBits>
 constexpr void calcYUV(uint16_t const ir, uint16_t const ig, uint16_t const ib, typename spec::YUV<yuvBits>::Type* dstY, typename spec::YUV<yuvBits>::Type* dstU, typename spec::YUV<yuvBits>::Type* dstV) {
   using YUVType = typename spec::YUV<yuvBits>::Type;
-  using RGBType = typename spec::RGB<rgbBits>::Type;
   float const r = static_cast<float>(ir) / spec::RGB<rgbBits>::max;
   float const g = static_cast<float>(ig) / spec::RGB<rgbBits>::max;
   float const b = static_cast<float>(ib) / spec::RGB<rgbBits>::max;
@@ -64,7 +80,6 @@ constexpr void calcYUV(uint16_t const ir, uint16_t const ig, uint16_t const ib, 
 
 template <size_t rgbBits, size_t yuvBits>
 constexpr std::tuple<typename spec::RGB<rgbBits>::Type, typename spec::RGB<rgbBits>::Type, typename spec::RGB<rgbBits>::Type> calcRGB(typename spec::YUV<yuvBits>::Type const* srcY, typename spec::YUV<yuvBits>::Type const* srcU, typename spec::YUV<yuvBits>::Type const* srcV) {
-  using YUVType = typename spec::YUV<yuvBits>::Type;
   using RGBType = typename spec::RGB<rgbBits>::Type;
 
   auto constexpr shift = static_cast<float>(1u << (yuvBits - 8u));
@@ -85,7 +100,8 @@ constexpr std::tuple<typename spec::RGB<rgbBits>::Type, typename spec::RGB<rgbBi
 template <uint8_t rgbBits, uint8_t yuvBits, bool subX, bool subY>
 void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t const* src, size_t stride, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV) {
   using YUVType = typename spec::YUV<yuvBits>::Type;
-  using RGBType = typename spec::RGB<rgbBits>::Type;
+  using RGBType = typename spec::RGB<rgbBits>::Type const;
+  spec::ChromaSampler<YUVType, subX, subY> sampler;
   uint8_t* lineY = dstY;
   uint8_t* lineU = dstU;
   uint8_t* lineV = dstV;
@@ -99,65 +115,40 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
       uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
       uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
       uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
-      if (subX) {
-        if(x % 2 == 0) {
-          calcYUV<rgbBits, yuvBits>(r, g, b, &ptrY[x], &ptrU[x/2], &ptrV[x/2]);
-        } else {
-          calcYUV<rgbBits, yuvBits>(r, g, b, &ptrY[x], nullptr, nullptr);
-        }
-      } else {
-        calcYUV<rgbBits, yuvBits>(r, g, b, &ptrY[x], &ptrU[x], &ptrV[x]);
-      }
+      calcYUV<rgbBits, yuvBits>(r, g, b, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
       ptr += bytesPerPixel;
     }
     lineY += strideY;
-    if(subY){
-      if(y % 2 == 1) {
-        lineU += strideU;
-        lineV += strideV;
-      }
-    } else {
-      lineU += strideU;
-      lineV += strideV;
-    }
+    lineU = sampler.nextLine(lineU, stride, y);
+    lineV = sampler.nextLine(lineV, stride, y);
     line += stride;
   }
 }
 
 template <uint8_t rgbBits, uint8_t yuvBits, bool subX, bool subY>
 void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t* dst, size_t stride, uint8_t const* srcY, size_t strideY, uint8_t const* srcU, size_t strideU, uint8_t const* srcV, size_t strideV) {
-  using YUVType = typename spec::YUV<yuvBits>::Type;
+  using YUVType = typename spec::YUV<yuvBits>::Type const;
   using RGBType = typename spec::RGB<rgbBits>::Type;
+  spec::ChromaSampler<YUVType, subX, subY> sampler;
   uint8_t const* lineY = srcY;
   uint8_t const* lineU = srcU;
   uint8_t const* lineV = srcV;
   uint8_t* line = dst;
   for(size_t y = 0; y < height; ++y) {
     uint8_t* ptr = line;
-    auto const* ptrY = reinterpret_cast<YUVType const*>(lineY);
-    auto const* ptrU = reinterpret_cast<YUVType const*>(lineU);
-    auto const* ptrV = reinterpret_cast<YUVType const*>(lineV);
+    auto const* ptrY = reinterpret_cast<YUVType*>(lineY);
+    auto const* ptrU = reinterpret_cast<YUVType*>(lineU);
+    auto const* ptrV = reinterpret_cast<YUVType*>(lineV);
     for (size_t x = 0; x < width; ++x) {
       RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
       RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
       RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
-      if (subX) {
-        std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], &ptrU[x/2], &ptrV[x/2]);
-      } else {
-        std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], &ptrU[x], &ptrV[x]);
-      }
+      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
       ptr += bytesPerPixel;
     }
     lineY += strideY;
-    if(subY){
-      if(y % 2 == 1) {
-        lineU += strideU;
-        lineV += strideV;
-      }
-    } else {
-      lineU += strideU;
-      lineV += strideV;
-    }
+    lineU = sampler.nextLine(lineU, stride, y);
+    lineV = sampler.nextLine(lineV, stride, y);
     line += stride;
   }
 }
