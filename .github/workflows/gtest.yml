@@ -18,6 +18,6 @@ jobs:
     - name: configure
       run: cmake -S . -B build/
     - name: make
-      run: make
+      run: env --chdir build make
     - name: ctest
-      run: env --chdir cmake-build-debug ctest
+      run: env --chdir build ctest
