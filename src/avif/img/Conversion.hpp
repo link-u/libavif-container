@@ -38,12 +38,13 @@ struct ChromaSampler {
   using LineType = typename std::conditional<isConst, const uint8_t, uint8_t>::type;
   constexpr LineType* nextLine(LineType* const currentLine, size_t const stride, size_t const y) {
     return currentLine == nullptr ? nullptr :
-           subY                   ? (y % 2 == 1 ? currentLine + stride : currentLine) :
+           subY                   ? (y % 2 == 1 ? (currentLine + stride) : currentLine) :
                                     (currentLine + stride);
   }
   constexpr T* pixelInLine(T* currentLine, size_t const x) {
     return currentLine == nullptr ? nullptr :
-                                    currentLine + (subX ? (x/2) : x);
+           subX                   ? &currentLine[x/2] :
+                                    &currentLine[x];
   }
 };
 
@@ -119,8 +120,8 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
       ptr += bytesPerPixel;
     }
     lineY += strideY;
-    lineU = sampler.nextLine(lineU, stride, y);
-    lineV = sampler.nextLine(lineV, stride, y);
+    lineU = sampler.nextLine(lineU, strideU, y);
+    lineV = sampler.nextLine(lineV, strideV, y);
     line += stride;
   }
 }
@@ -147,8 +148,8 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
       ptr += bytesPerPixel;
     }
     lineY += strideY;
-    lineU = sampler.nextLine(lineU, stride, y);
-    lineV = sampler.nextLine(lineV, stride, y);
+    lineU = sampler.nextLine(lineU, strideU, y);
+    lineV = sampler.nextLine(lineV, strideV, y);
     line += stride;
   }
 }
