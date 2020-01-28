@@ -15,8 +15,12 @@ jobs:
         sed -i -e 's/git\@github\.com\:/https\:\/\/github.com\//g' .gitmodules
         git submodule sync --recursive
         git submodule update --init --force --recursive
+    - name: Install gcc-8 g++-8
+      shell: bash
+      run: |
+        sudo apt install gcc-8 g++-8
     - name: configure
-      run: cmake -S . -B build/
+      run: CXX=g++-8 CC=gcc-8 cmake -S . -B build/
     - name: make
       run: env --chdir build make
     - name: ctest
