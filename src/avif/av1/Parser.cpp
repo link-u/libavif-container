@@ -142,7 +142,7 @@ SequenceHeader Parser::parseSequenceHeader() {
     shdr.operatingPointsCnt = 1;
     shdr.operatingPoints.resize(shdr.operatingPointsCnt);
     shdr.operatingPoints[0].idc = 0;
-    shdr.operatingPoints[0].seqLevelIdx = 0;
+    shdr.operatingPoints[0].seqLevelIdx = readBits(5);
     shdr.operatingPoints[0].seqTier = 0;
     shdr.operatingPoints[0].decoderModelPresentFlag = false;
     shdr.operatingPoints[0].initialDisplayDelayPresent = false;
