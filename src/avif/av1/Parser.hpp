@@ -25,8 +25,8 @@ public:
     Error() = delete;
     template <typename ...Args>
     explicit Error(std::string const& fmt, Args &&... args)
-        :std::exception()
-        ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...))
+    :std::exception()
+     ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...))
     {
     }
     explicit Error(std::exception const& err):std::exception(), msg_(tfm::format("[stdlib] %s", err.what())) {

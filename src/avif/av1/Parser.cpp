@@ -54,6 +54,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       return std::optional<Parser::Result::Packet>();
     }
   }
+  bool skipTrailingCheck = false; // To skip unnecessary packets without errors.
   Result::Packet::Content content;
   switch(hdr.type) {
     case Header::Type::Reserved:
@@ -75,8 +76,10 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
     case Header::Type::Frame:
     case Header::Type::RedunduntFrameHeader:
     case Header::Type::TileList:
-          /* 9-14: reserved */
+      this->seekInBytes(startPositionInBytes + size);
+      skipTrailingCheck = true;
       break;
+    // case 9-14: reserved
     case Header::Type::Padding:
       content = Padding();
       break;
@@ -85,7 +88,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
   }
   size_t const currentPosition = this->posInBits();
   size_t const payloadBits = currentPosition - startPosition;
-  if (
+  if (!skipTrailingCheck &&
       size > 0 &&
       hdr.type != Header::Type::TileGroup &&
       hdr.type != Header::Type::TileList &&
