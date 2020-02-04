@@ -92,9 +92,9 @@ constexpr std::tuple<typename spec::RGB<rgbBits>::Type, typename spec::RGB<rgbBi
   float const g = y + (-0.16455f) * u  + (-0.57135f) * v;
   float const b = y + (+1.88140f) * u;
 
-  auto const ir = static_cast<RGBType>(clamp<int>(static_cast<int>(r * spec::RGB<rgbBits>::max), 0, spec::RGB<rgbBits>::max));
-  auto const ig = static_cast<RGBType>(clamp<int>(static_cast<int>(g * spec::RGB<rgbBits>::max), 0, spec::RGB<rgbBits>::max));
-  auto const ib = static_cast<RGBType>(clamp<int>(static_cast<int>(b * spec::RGB<rgbBits>::max), 0, spec::RGB<rgbBits>::max));
+  auto const ir = static_cast<RGBType>(clamp<int>(static_cast<int>(std::round(r * spec::RGB<rgbBits>::max)), 0, spec::RGB<rgbBits>::max));
+  auto const ig = static_cast<RGBType>(clamp<int>(static_cast<int>(std::round(g * spec::RGB<rgbBits>::max)), 0, spec::RGB<rgbBits>::max));
+  auto const ib = static_cast<RGBType>(clamp<int>(static_cast<int>(std::round(b * spec::RGB<rgbBits>::max)), 0, spec::RGB<rgbBits>::max));
   return std::make_tuple(ir, ig, ib);
 }
 
