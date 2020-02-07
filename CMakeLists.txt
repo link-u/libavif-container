@@ -19,6 +19,7 @@ add_library(
         src/avif/util/StreamWriter.cpp
 
         src/avif/img/Image.hpp
+        src/avif/img/Spec.hpp
         src/avif/img/Conversion.hpp
         src/avif/img/Transform.hpp
         src/avif/img/TransformImpl.hpp
@@ -51,6 +52,7 @@ add_library(
         src/avif/ItemInfoBox.hpp
         src/avif/ItemInfoEntry.hpp
         src/avif/ItemInfoExtension.hpp
+        src/avif/ItemReferenceBox.hpp
 
         src/avif/Parser.cpp
         src/avif/Parser.hpp
@@ -66,7 +68,7 @@ add_library(
         src/avif/av1/Parser.hpp
         src/avif/av1/BitStreamReader.cpp
         src/avif/av1/BitStreamReader.hpp
-        src/avif/ItemReferenceBox.hpp)
+)
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")

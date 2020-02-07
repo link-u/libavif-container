@@ -8,23 +8,9 @@
 #include <cstdint>
 #include <cassert>
 
+#include "Spec.hpp"
+
 namespace avif::img {
-
-namespace spec {
-
-template <uint8_t bitsPerComponent> struct RGB;
-template <> struct RGB<8> {
-  using Type = uint8_t;
-  static constexpr float max = 255.0f;
-  static constexpr size_t bytesPerComponent = sizeof(uint8_t);
-};
-template <> struct RGB<16> {
-  using Type = uint16_t;
-  static constexpr float max = 65535.0f;
-  static constexpr size_t bytesPerComponent = sizeof(uint16_t);
-};
-
-}
 
 enum class PixelOrder {
   RGB, /* [R,G,B], [R,G,B], ... */

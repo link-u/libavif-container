@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <tuple>
 #include "Image.hpp"
 #include "../ImageMirrorBox.hpp"
 #include "../ImageRotationBox.hpp"
