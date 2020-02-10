@@ -1,5 +1,7 @@
 # libavif-container
 
+![CI with GTest](https://github.com/link-u/libavif-container/workflows/CI%20with%20GTest/badge.svg)
+
 A library to parsing and writing avif container.
 
 (It is not for neither decoding nor encoding.)
