@@ -273,12 +273,14 @@ void Parser::parseBoxInItemPropertyContainer(ItemPropertyContainer& container) {
       rloc.hdr = hdr;
       this->parseRelativeLocationProperty(rloc, hdr.end());
       container.properties.emplace_back(rloc);
+      break;
     }
     case boxType("auxC"): {
       AuxiliaryTypeProperty aux{};
       aux.hdr = hdr;
       this->parseAuxiliaryTypeProperty(aux, hdr.end());
       container.properties.emplace_back(aux);
+      break;
     }
     case boxType("clap"): {
       // ISO/IEC 14496-12:2015(E)
