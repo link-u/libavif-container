@@ -13,6 +13,8 @@
 namespace avif::img {
 
 enum class PixelOrder {
+  Mono, /* [Mono], [Mono], ... */
+  MonoA, /* [Mono, A], [Mono, A], ... */
   RGB, /* [R,G,B], [R,G,B], ... */
   RGBA, /* [R,G,B,A], [R,G,B,A], ... */
 };
@@ -21,10 +23,24 @@ template <size_t BitsPerComponent>
 class Image final {
   static_assert(BitsPerComponent == 8 || BitsPerComponent == 16);
 private:
+  static constexpr size_t calcNumComponents(PixelOrder const pixelOrder) noexcept {
+    switch (pixelOrder) {
+      case PixelOrder::RGB:
+        return 3;
+      case PixelOrder::RGBA:
+        return 4;
+      case PixelOrder::Mono:
+        return 1;
+      case PixelOrder::MonoA:
+        return 2;
+      default:
+        assert(false && "[BUG] Unknown PixelOrder constant!");
+    }
+  }
+private:
   PixelOrder pixelOrder_{};
   uint32_t width_{};
   uint32_t height_{};
-  uint32_t bytesPerPixel_{};
   uint32_t stride_{};
   std::vector<uint8_t> data_{};
 public:
@@ -39,7 +55,6 @@ public:
   :pixelOrder_(pixelOrder)
   ,width_(width)
   ,height_(height)
-  ,bytesPerPixel_(bytesPerPiexl)
   ,stride_(stride)
   ,data_(std::move(data))
   {
@@ -47,7 +62,7 @@ public:
   }
   static Image createEmptyImage(PixelOrder const pixelOrder, uint32_t const width, uint32_t const height) {
     std::vector<uint8_t> dstBuff;
-    size_t const bytesPerPixel = (pixelOrder == PixelOrder::RGBA ? 4 : 3) * spec::RGB<BitsPerComponent>::bytesPerComponent;
+    size_t const bytesPerPixel = calcNumComponents(pixelOrder) * spec::RGB<BitsPerComponent>::bytesPerComponent;
     size_t const stride = bytesPerPixel * width;
     dstBuff.resize(stride * height);
     return Image(pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
@@ -65,21 +80,16 @@ public:
     return this->stride_;
   }
   [[ nodiscard ]] uint32_t bytesPerPixel() const {
-    return this->bytesPerPixel_;
+    return numComponents() * this->bytesPerComponent();
   }
-  [[ nodiscard ]] uint8_t bitsPerComponent() const {
-    return this->BitsPerComponent;
+  [[ nodiscard ]] constexpr uint32_t bytesPerComponent() const {
+    return BitsPerComponent / 8;
+  }
+  [[ nodiscard ]] constexpr uint8_t bitsPerComponent() const {
+    return BitsPerComponent;
   }
   [[ nodiscard ]] uint8_t numComponents() const {
-    switch (this->pixelOrder_) {
-      case PixelOrder::RGB:
-        return 3;
-      case PixelOrder::RGBA:
-        return 4;
-      default:
-        assert("Do not come here." && (this->pixelOrder_ != PixelOrder::RGB || this->pixelOrder_ != PixelOrder::RGBA));
-        return 0;
-    }
+    return calcNumComponents(this->pixelOrder_);
   }
   [[ nodiscard ]] uint8_t const* data() const {
     return this->data_.data();

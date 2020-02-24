@@ -30,7 +30,7 @@ struct ChromaSampler {
 
 namespace detail {
 
-template <size_t rgbBits, size_t yuvBits, bool isFullRange>
+template <size_t rgbBits, size_t yuvBits, bool isMonoYUV, bool isFullRange>
 constexpr void calcYUV(uint16_t const ir, uint16_t const ig, uint16_t const ib, typename avif::img::spec::YUV<yuvBits>::Type* dstY, typename avif::img::spec::YUV<yuvBits>::Type* dstU, typename avif::img::spec::YUV<yuvBits>::Type* dstV) {
   using Quantizer = typename avif::img::spec::Quantizer<rgbBits, yuvBits, isFullRange>;
   using RGBSpec = typename avif::img::spec::RGB<rgbBits>;
@@ -41,17 +41,17 @@ constexpr void calcYUV(uint16_t const ir, uint16_t const ig, uint16_t const ib, 
   float const y = 0.2627f * r + 0.6780f * g + 0.0593f * b;
   *dstY = Quantizer::quantizeLuma(y);
 
-  if (dstU) {
+  if (!isMonoYUV) {
     const float u = (b - y) / 1.8814f;
     *dstU = Quantizer::quantizeChroma(u);
   }
-  if (dstV) {
+  if (!isMonoYUV) {
     const float v = (r - y) / 1.4746f;
     *dstV = Quantizer::quantizeChroma(v);
   }
 }
 
-template <size_t rgbBits, size_t yuvBits, bool isFullRange>
+template <size_t rgbBits, size_t yuvBits, bool isMonoYUV, bool isFullRange>
 constexpr std::tuple<typename avif::img::spec::RGB<rgbBits>::Type, typename avif::img::spec::RGB<rgbBits>::Type, typename avif::img::spec::RGB<rgbBits>::Type> calcRGB(typename avif::img::spec::YUV<yuvBits>::Type const* srcY, typename avif::img::spec::YUV<yuvBits>::Type const* srcU, typename avif::img::spec::YUV<yuvBits>::Type const* srcV) {
   using avif::img::spec::clamp;
   using Quantizer = typename avif::img::spec::Quantizer<rgbBits, yuvBits, isFullRange>;
@@ -61,8 +61,8 @@ constexpr std::tuple<typename avif::img::spec::RGB<rgbBits>::Type, typename avif
   using RGBType = typename RGBSpec::Type;
 
   auto const y = Quantizer::dequantizeLuma(*srcY);
-  auto const u = srcU != nullptr ? Quantizer::dequantizeChroma(*srcU) : 0.0f;
-  auto const v = srcV != nullptr ? Quantizer::dequantizeChroma(*srcV) : 0.0f;
+  auto const u = isMonoYUV ? 0.0f : Quantizer::dequantizeChroma(*srcU);
+  auto const v = isMonoYUV ? 0.0f : Quantizer::dequantizeChroma(*srcV);
 
   float const r = y                    + (+1.47460f) * v;
   float const g = y + (-0.16455f) * u  + (-0.57135f) * v;
@@ -74,7 +74,7 @@ constexpr std::tuple<typename avif::img::spec::RGB<rgbBits>::Type, typename avif
   return std::make_tuple(ir, ig, ib);
 }
 
-// Monochrome version
+// MonochromeYUV version
 template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
 void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t const* src, size_t const stride, uint8_t* const dstY, size_t const strideY) {
   using avif::img::spec::clamp;
@@ -93,7 +93,7 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
       uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
       uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
       uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
-      calcYUV<rgbBits, yuvBits, isFullRange>(r, g, b, &ptrY[x], nullptr, nullptr);
+      calcYUV<rgbBits, yuvBits, true, isFullRange>(r, g, b, &ptrY[x], nullptr, nullptr);
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -126,7 +126,7 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
       uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
       uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
       uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
-      calcYUV<rgbBits, yuvBits, isFullRange>(r, g, b, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      calcYUV<rgbBits, yuvBits, false, isFullRange>(r, g, b, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -154,7 +154,7 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
       RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
       RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
       RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
-      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, isFullRange>(&ptrY[x], nullptr, nullptr);
+      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, true, isFullRange>(&ptrY[x], nullptr, nullptr);
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -185,7 +185,7 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
       RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
       RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
       RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
-      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, isFullRange>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, false, isFullRange>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -199,8 +199,8 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
 
 template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
 struct FromRGB final {
-  void toI400(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY) {
-    detail::convertFromRGB<rgbBits, yuvBits, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY);
+  void toI400(Image<rgbBits>& src, uint8_t* dstY, size_t strideY) {
+    detail::convertFromRGB<rgbBits, yuvBits, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY);
   }
   void toI444(Image<rgbBits> const& src, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV) {
     detail::convertFromRGB<rgbBits, yuvBits, isFullRange, false, false>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
@@ -210,6 +210,22 @@ struct FromRGB final {
   }
   void toI420(Image<rgbBits> const& src, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV){
     detail::convertFromRGB<rgbBits, yuvBits, isFullRange, true, true>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
+  }
+};
+
+template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+struct FromAlpha final {
+  void toI400(Image<rgbBits>& src, uint8_t* dstY, size_t strideY) {
+    switch(src.pixelOrder()) {
+      case avif::img::PixelOrder::MonoA:
+      case avif::img::PixelOrder::RGBA:
+        detail::convertFromRGB<rgbBits, yuvBits, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data() + (src.numComponents() - 1) * src.bytesPerComponent(), src.stride(), dstY, strideY);
+        break;
+      case avif::img::PixelOrder::Mono:
+        throw std::domain_error("Cannot separate Alpha from Mono image.");
+      case avif::img::PixelOrder::RGB:
+        throw std::domain_error("Cannot separate Alpha from RGB image.");
+    }
   }
 };
 
@@ -226,6 +242,21 @@ struct ToRGB final {
   }
   void fromI420(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY, uint8_t* srcU, size_t strideU, uint8_t* srcV, size_t strideV){
     detail::convertFromYUV<rgbBits, yuvBits, isFullRange, true, true>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
+  }
+};
+template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+struct ToAlpha final {
+  void fromI400(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY) {
+    switch(dst.pixelOrder()) {
+      case avif::img::PixelOrder::MonoA:
+      case avif::img::PixelOrder::RGBA:
+        detail::convertFromYUV<rgbBits, yuvBits, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data() + (dst.numComponents() - 1) * dst.bytesPerComponent(), dst.stride(), srcY, strideY);
+        break;
+      case avif::img::PixelOrder::Mono:
+        throw std::domain_error("Cannot store Alpha to Mono image.");
+      case avif::img::PixelOrder::RGB:
+        throw std::domain_error("Cannot store Alpha to RGB image.");
+    }
   }
 };
 
