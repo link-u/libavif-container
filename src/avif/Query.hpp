@@ -39,4 +39,57 @@ std::pair<size_t, size_t> findItemRegion(avif::FileBox const& fileBox, std::opti
   return std::make_pair(baseOffset + extentOffset, baseOffset + extentOffset + extentLength);
 }
 
+std::optional<uint32_t> findPrimaryItemID(avif::FileBox const& fileBox) {
+  if(fileBox.metaBox.primaryItemBox.has_value()) {
+    return fileBox.metaBox.primaryItemBox.value().itemID;
+  }
+  return std::optional<uint32_t>();
+}
+
+std::optional<uint32_t> findAuxItemID(avif::FileBox const& fileBox, uint32_t const itemID, std::string const& auxType) {
+  auto const& refs = fileBox.metaBox.itemReferenceBox->references;
+  if(std::holds_alternative<std::vector<SingleItemTypeReferenceBoxLarge>>(refs)) {
+    for(auto const& ref : std::get<std::vector<SingleItemTypeReferenceBoxLarge>>(refs)) {
+      for(auto const& toItemID : ref.toItemIDs) {
+        if(toItemID == itemID) {
+          for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations){
+            for(auto const& item : assoc.items){
+              if(item.itemID == ref.fromItemID) {
+                for(auto const& prop : fileBox.metaBox.itemPropertiesBox.propertyContainers.properties) {
+                  if(std::holds_alternative<AuxiliaryTypeProperty>(prop)) {
+                    if(std::get<AuxiliaryTypeProperty>(prop).auxType == auxType) {
+                      return ref.fromItemID;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } else {
+    for(auto const& ref : std::get<std::vector<SingleItemTypeReferenceBox>>(refs)) {
+      for(auto const& toItemID : ref.toItemIDs) {
+        if(toItemID == itemID) {
+          for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations){
+            for(auto const& item : assoc.items){
+              if(item.itemID == ref.fromItemID) {
+                for(auto const& prop : fileBox.metaBox.itemPropertiesBox.propertyContainers.properties) {
+                  if(std::holds_alternative<AuxiliaryTypeProperty>(prop)) {
+                    if(std::get<AuxiliaryTypeProperty>(prop).auxType == auxType) {
+                      return ref.fromItemID;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return std::optional<uint32_t>();
+}
+
 }
