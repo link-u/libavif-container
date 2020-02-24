@@ -453,7 +453,7 @@ void Writer::writeItemReferenceBox(ItemReferenceBox& box) {
   if(isLarge) {
     auto& items = std::get<std::vector<SingleItemTypeReferenceBoxLarge>>(box.references);
     for(auto& item : items) {
-      auto itemContext = this->beginFullBoxHeader(uint2str(item.hdr.type).c_str(), box);
+      auto itemContext = this->beginBoxHeader(uint2str(item.hdr.type).c_str(), item);
       putU32(item.fromItemID);
       putU16(item.toItemIDs.size());
       for(uint32_t& toItemID : item.toItemIDs) {
@@ -463,7 +463,7 @@ void Writer::writeItemReferenceBox(ItemReferenceBox& box) {
   } else {
     auto& items = std::get<std::vector<SingleItemTypeReferenceBox>>(box.references);
     for(auto& item : items) {
-      auto itemContext = this->beginFullBoxHeader(uint2str(item.hdr.type).c_str(), box);
+      auto itemContext = this->beginBoxHeader(uint2str(item.hdr.type).c_str(), item);
       putU16(item.fromItemID);
       putU16(item.toItemIDs.size());
       for(uint16_t& toItemID : item.toItemIDs) {

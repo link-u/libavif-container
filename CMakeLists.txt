@@ -12,6 +12,7 @@ add_library(
         src/avif/util/Logger.cpp
         src/avif/util/FileLogger.cpp
         src/avif/util/FileLogger.hpp
+        src/avif/util/FourCC.cpp
         src/avif/util/FourCC.hpp
         src/avif/util/StreamReader.cpp
         src/avif/util/StreamReader.hpp
@@ -58,6 +59,7 @@ add_library(
         src/avif/Parser.hpp
         src/avif/Writer.cpp
         src/avif/Writer.hpp
+        src/avif/Query.hpp
 
         src/avif/av1/Header.hpp
         src/avif/av1/SequenceHeader.hpp
@@ -66,6 +68,7 @@ add_library(
 
         src/avif/av1/Parser.cpp
         src/avif/av1/Parser.hpp
+        src/avif/av1/Query.hpp
         src/avif/av1/BitStreamReader.cpp
         src/avif/av1/BitStreamReader.hpp
 )

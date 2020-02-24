@@ -16,8 +16,8 @@ public:
   FullBox& operator=(FullBox&&) = default;
   FullBox& operator=(FullBox const&) = default;
 private:
-  uint8_t version_;
-  uint32_t flags_;
+  uint8_t version_{};
+  uint32_t flags_{};
 public:
   [[nodiscard]] inline uint8_t version() const { return this->version_; }
   [[nodiscard]] inline uint32_t flags() const { return this->flags_; }

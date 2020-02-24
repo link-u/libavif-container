@@ -12,8 +12,8 @@
 namespace avif {
 
 struct AuxiliaryTypeProperty : public FullBox {
-  std::string auxType;
-  std::vector<uint8_t> auxSubtype;
+  std::string auxType{};
+  std::vector<uint8_t> auxSubtype{};
 };
 
 }
