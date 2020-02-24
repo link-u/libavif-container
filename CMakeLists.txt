@@ -26,6 +26,9 @@ add_library(
         src/avif/img/TransformImpl.hpp
         src/avif/img/Crop.hpp
 
+        src/avif/Constants.hpp
+        src/avif/Constants.cpp
+
         src/avif/Box.hpp
         src/avif/FullBox.hpp
         src/avif/FileBox.hpp
