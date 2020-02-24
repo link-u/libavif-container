@@ -709,10 +709,11 @@ void Parser::parseItemReferenceBox(ItemReferenceBox& box, size_t const end) {
       item.fromItemID = readU32();
       size_t const referenceCount = readU16();
       for(size_t i = 0; i < referenceCount; ++i) {
-        uint32_t const toID = readU16();
+        uint32_t const toID = readU32();
         item.toItemIDs.emplace_back(toID);
       }
       this->seek(item.hdr.end());
+      items.emplace_back(item);
     }
     box.references = std::move(items);
   }
