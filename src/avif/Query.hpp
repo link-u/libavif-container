@@ -47,6 +47,9 @@ std::optional<uint32_t> findPrimaryItemID(avif::FileBox const& fileBox) {
 }
 
 std::optional<uint32_t> findAuxItemID(avif::FileBox const& fileBox, uint32_t const itemID, std::string const& auxType) {
+  if(!fileBox.metaBox.itemReferenceBox.has_value()) {
+    return std::optional<uint32_t>();
+  }
   auto const& refs = fileBox.metaBox.itemReferenceBox->references;
   if(std::holds_alternative<std::vector<SingleItemTypeReferenceBoxLarge>>(refs)) {
     for(auto const& ref : std::get<std::vector<SingleItemTypeReferenceBoxLarge>>(refs)) {
