@@ -11,13 +11,11 @@
 namespace avif {
 
 struct SingleItemTypeReferenceBox : public Box {
-  uint32_t referenceType{};
   uint16_t fromItemID{};
   std::vector<uint16_t> toItemIDs{};
 };
 
 struct SingleItemTypeReferenceBoxLarge : public Box {
-  uint32_t referenceType{};
   uint32_t fromItemID{};
   std::vector<uint32_t> toItemIDs{};
 };
