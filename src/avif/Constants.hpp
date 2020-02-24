@@ -8,6 +8,7 @@
 
 namespace avif {
 
-extern const std::string kAlphaAuxType;
+std::string kAlphaAuxType();
+std::string kDepthAuxType();
 
 }

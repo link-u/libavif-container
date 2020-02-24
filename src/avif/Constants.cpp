@@ -8,6 +8,11 @@
 
 namespace avif {
 
-const std::string kAlphaAuxType = "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha";
+std::string kAlphaAuxType() {
+  return "urn:mpeg:mpegB:cicp:systems:auxiliary:alpha";
+}
+std::string kDepthAuxType() {
+  return "urn:mpeg:mpegB:cicp:systems:auxiliary:depth";
+}
 
 }
