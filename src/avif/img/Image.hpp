@@ -97,6 +97,15 @@ public:
   [[ nodiscard ]] uint8_t* data() {
     return this->data_.data();
   }
+  [[ nodiscard ]] bool isMonochrome() {
+    switch(pixelOrder_){
+      case PixelOrder::Mono:
+      case PixelOrder::MonoA:
+        return true;
+      default:
+        return false;
+    }
+  }
 };
 
 }

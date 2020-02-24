@@ -75,7 +75,7 @@ constexpr std::tuple<typename avif::img::spec::RGB<rgbBits>::Type, typename avif
 }
 
 // MonochromeYUV version
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+template <uint8_t rgbBits, uint8_t yuvBits, bool fromMonoRGB, bool isFullRange>
 void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t const* src, size_t const stride, uint8_t* const dstY, size_t const strideY) {
   using avif::img::spec::clamp;
   using RGBSpec = typename avif::img::spec::RGB<rgbBits>;
@@ -90,10 +90,15 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
     uint8_t const *ptr = line;
     auto* ptrY = reinterpret_cast<YUVType*>(lineY);
     for (size_t x = 0; x < width; ++x) {
-      uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
-      uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
-      uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
-      calcYUV<rgbBits, yuvBits, true, isFullRange>(r, g, b, &ptrY[x], nullptr, nullptr);
+      if(fromMonoRGB) {
+        uint16_t const mono = reinterpret_cast<RGBType const *>(ptr)[0];
+        calcYUV<rgbBits, yuvBits, true, isFullRange>(mono, mono, mono, &ptrY[x], nullptr, nullptr);
+      } else {
+        uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
+        uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
+        uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
+        calcYUV<rgbBits, yuvBits, true, isFullRange>(r, g, b, &ptrY[x], nullptr, nullptr);
+      }
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -101,7 +106,7 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
   }
 }
 
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange, bool subX, bool subY>
+template <uint8_t rgbBits, uint8_t yuvBits, bool fromMonoRGB, bool isFullRange, bool subX, bool subY>
 void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t const* src, size_t const stride, uint8_t* const dstY, size_t const strideY, uint8_t* const dstU, size_t const strideU, uint8_t* const dstV, size_t const strideV) {
   using avif::img::spec::clamp;
   using RGBSpec = typename avif::img::spec::RGB<rgbBits>;
@@ -123,10 +128,15 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
     auto* ptrU = reinterpret_cast<YUVType*>(lineU);
     auto* ptrV = reinterpret_cast<YUVType*>(lineV);
     for (size_t x = 0; x < width; ++x) {
-      uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
-      uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
-      uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
-      calcYUV<rgbBits, yuvBits, false, isFullRange>(r, g, b, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      if(fromMonoRGB) {
+        uint16_t const mono = reinterpret_cast<RGBType const *>(ptr)[0];
+        calcYUV<rgbBits, yuvBits, false, isFullRange>(mono, mono, mono, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      } else {
+        uint16_t const r = reinterpret_cast<RGBType const *>(ptr)[0];
+        uint16_t const g = reinterpret_cast<RGBType const *>(ptr)[1];
+        uint16_t const b = reinterpret_cast<RGBType const *>(ptr)[2];
+        calcYUV<rgbBits, yuvBits, false, isFullRange>(r, g, b, &ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      }
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -136,8 +146,8 @@ void constexpr convertFromRGB(size_t width, size_t height, uint8_t bytesPerPixel
   }
 }
 
-// Monochrome version
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+// MonochromeYUV version
+template <uint8_t rgbBits, uint8_t yuvBits, bool toMonoRGB, bool isFullRange>
 void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t* dst, size_t stride, uint8_t const* srcY, size_t strideY) {
   using RGBSpec = typename avif::img::spec::RGB<rgbBits>;
   using YUVSpec = typename avif::img::spec::YUV<yuvBits>;
@@ -151,10 +161,15 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
     uint8_t* ptr = line;
     auto const* ptrY = reinterpret_cast<YUVType*>(lineY);
     for (size_t x = 0; x < width; ++x) {
-      RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
-      RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
-      RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
-      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, true, isFullRange>(&ptrY[x], nullptr, nullptr);
+      if(toMonoRGB) {
+        RGBType& mono = reinterpret_cast<RGBType*>(ptr)[0];
+        std::tie(mono, mono, mono) = calcRGB<rgbBits, yuvBits, true, isFullRange>(&ptrY[x], nullptr, nullptr);
+      } else {
+        RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
+        RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
+        RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
+        std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, true, isFullRange>(&ptrY[x], nullptr, nullptr);
+      }
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -162,7 +177,7 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
   }
 }
 
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange, bool subX, bool subY>
+template <uint8_t rgbBits, uint8_t yuvBits, bool toMonoRGB, bool isFullRange, bool subX, bool subY>
 void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel, uint8_t* dst, size_t stride, uint8_t const* srcY, size_t strideY, uint8_t const* srcU, size_t strideU, uint8_t const* srcV, size_t strideV) {
   using RGBSpec = typename avif::img::spec::RGB<rgbBits>;
   using YUVSpec = typename avif::img::spec::YUV<yuvBits>;
@@ -182,10 +197,15 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
     auto const* ptrU = reinterpret_cast<YUVType*>(lineU);
     auto const* ptrV = reinterpret_cast<YUVType*>(lineV);
     for (size_t x = 0; x < width; ++x) {
-      RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
-      RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
-      RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
-      std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, false, isFullRange>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      if(toMonoRGB) {
+        RGBType& mono = reinterpret_cast<RGBType*>(ptr)[0];
+        std::tie(mono, mono, mono) = calcRGB<rgbBits, yuvBits, false, isFullRange>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      } else {
+        RGBType& r = reinterpret_cast<RGBType*>(ptr)[0];
+        RGBType& g = reinterpret_cast<RGBType*>(ptr)[1];
+        RGBType& b = reinterpret_cast<RGBType*>(ptr)[2];
+        std::tie(r,g,b) = calcRGB<rgbBits, yuvBits, false, isFullRange>(&ptrY[x], sampler.pixelInLine(ptrU, x), sampler.pixelInLine(ptrV, x));
+      }
       ptr += bytesPerPixel;
     }
     lineY += strideY;
@@ -197,19 +217,19 @@ void constexpr convertFromYUV(size_t width, size_t height, uint8_t bytesPerPixel
 
 }
 
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+template <uint8_t rgbBits, uint8_t yuvBits, bool toMonoRGB, bool isFullRange>
 struct FromRGB final {
   void toI400(Image<rgbBits>& src, uint8_t* dstY, size_t strideY) {
-    detail::convertFromRGB<rgbBits, yuvBits, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY);
+    detail::convertFromRGB<rgbBits, yuvBits, toMonoRGB, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY);
   }
   void toI444(Image<rgbBits> const& src, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV) {
-    detail::convertFromRGB<rgbBits, yuvBits, isFullRange, false, false>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
+    detail::convertFromRGB<rgbBits, yuvBits, toMonoRGB, isFullRange, false, false>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
   }
   void toI422(Image<rgbBits> const& src, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV){
-    detail::convertFromRGB<rgbBits, yuvBits, isFullRange, true, false>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
+    detail::convertFromRGB<rgbBits, yuvBits, toMonoRGB, isFullRange, true, false>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
   }
   void toI420(Image<rgbBits> const& src, uint8_t* dstY, size_t strideY, uint8_t* dstU, size_t strideU, uint8_t* dstV, size_t strideV){
-    detail::convertFromRGB<rgbBits, yuvBits, isFullRange, true, true>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
+    detail::convertFromRGB<rgbBits, yuvBits, toMonoRGB, isFullRange, true, true>(src.width(), src.height(), src.bytesPerPixel(), src.data(), src.stride(), dstY, strideY, dstU, strideU, dstV, strideV);
   }
 };
 
@@ -219,7 +239,7 @@ struct FromAlpha final {
     switch(src.pixelOrder()) {
       case avif::img::PixelOrder::MonoA:
       case avif::img::PixelOrder::RGBA:
-        detail::convertFromRGB<rgbBits, yuvBits, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data() + (src.numComponents() - 1) * src.bytesPerComponent(), src.stride(), dstY, strideY);
+        detail::convertFromRGB<rgbBits, yuvBits, true, isFullRange>(src.width(), src.height(), src.bytesPerPixel(), src.data() + (src.numComponents() - 1) * src.bytesPerComponent(), src.stride(), dstY, strideY);
         break;
       case avif::img::PixelOrder::Mono:
         throw std::domain_error("Cannot separate Alpha from Mono image.");
@@ -229,19 +249,19 @@ struct FromAlpha final {
   }
 };
 
-template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
+template <uint8_t rgbBits, uint8_t yuvBits, bool toMonoRGB, bool isFullRange>
 struct ToRGB final {
   void fromI400(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY) {
-    detail::convertFromYUV<rgbBits, yuvBits, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY);
+    detail::convertFromYUV<rgbBits, yuvBits, toMonoRGB, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY);
   }
   void fromI444(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY, uint8_t* srcU, size_t strideU, uint8_t* srcV, size_t strideV) {
-    detail::convertFromYUV<rgbBits, yuvBits, isFullRange, false, false>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
+    detail::convertFromYUV<rgbBits, yuvBits, toMonoRGB, isFullRange, false, false>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
   }
   void fromI422(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY, uint8_t* srcU, size_t strideU, uint8_t* srcV, size_t strideV){
-    detail::convertFromYUV<rgbBits, yuvBits, isFullRange, true, false>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
+    detail::convertFromYUV<rgbBits, yuvBits, toMonoRGB, isFullRange, true, false>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
   }
   void fromI420(Image<rgbBits>& dst, uint8_t* srcY, size_t strideY, uint8_t* srcU, size_t strideU, uint8_t* srcV, size_t strideV){
-    detail::convertFromYUV<rgbBits, yuvBits, isFullRange, true, true>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
+    detail::convertFromYUV<rgbBits, yuvBits, toMonoRGB, isFullRange, true, true>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data(), dst.stride(), srcY, strideY, srcU, strideU, srcV, strideV);
   }
 };
 template <uint8_t rgbBits, uint8_t yuvBits, bool isFullRange>
@@ -250,7 +270,7 @@ struct ToAlpha final {
     switch(dst.pixelOrder()) {
       case avif::img::PixelOrder::MonoA:
       case avif::img::PixelOrder::RGBA:
-        detail::convertFromYUV<rgbBits, yuvBits, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data() + (dst.numComponents() - 1) * dst.bytesPerComponent(), dst.stride(), srcY, strideY);
+        detail::convertFromYUV<rgbBits, yuvBits, true, isFullRange>(dst.width(), dst.height(), dst.bytesPerPixel(), dst.data() + (dst.numComponents() - 1) * dst.bytesPerComponent(), dst.stride(), srcY, strideY);
         break;
       case avif::img::PixelOrder::Mono:
         throw std::domain_error("Cannot store Alpha to Mono image.");
