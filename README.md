@@ -63,6 +63,7 @@ MIT
 ## MIAF - MPEG-A Part 22 (ISO/IEC 23000-22:2019)
  - Information technology — Multimedia application format (MPEG-A) — Part 22: Multi-image application format (MIAF)
    https://www.iso.org/standard/74417.html
+ - [MPEG MIAF Conformance Software Wasm demo](https://gpac.github.io/ComplianceWarden-wasm/)
 
 ## AVIF
  - [AVIF2018.pdf](https://people.xiph.org/~negge/AVIF2018.pdf)
