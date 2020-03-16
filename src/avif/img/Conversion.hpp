@@ -46,23 +46,22 @@ struct Converter {
 template <float const& Kr, float const& Kb>
 struct KrKbConverter {
   static constexpr float Kg = 1.0f - Kr -Kb;
+  static constexpr float Cb_B =  2.0f * (1.0f - Kb);
+  static constexpr float Cb_G = -2.0f * (1.0f - Kb) * Kb / Kg;
+
+  static constexpr float Cr_R =  2.0f * (1.0f - Kr);
+  static constexpr float Cr_G = -2.0f * (1.0f - Kr) * Kr / Kg;
+
   constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) const {
     *y = Kr * r + Kg * g + Kb * b;
     if (u) {
-      *u = (b - *y) / (1.0f - Kb);
+      *u = 0.5f * (b - *y) / (1.0f - Kb);
     }
     if (v) {
-      *v = (r - *y) / (1.0f - Kr);
+      *v = 0.5f * (r - *y) / (1.0f - Kr);
     }
   }
   constexpr std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
-    // Setup Matrix
-    constexpr float Cb_B =  2.0f * (1.0f - Kb);
-    constexpr float Cb_G = -2.0f * (1.0f - Kb) * Kb / Kg;
-
-    constexpr float Cr_R =  2.0f * (1.0f - Kr);
-    constexpr float Cr_G = -2.0f * (1.0f - Kr) * Kr / Kg;
-
     float const r = y             + Cr_R * v;
     float const g = y + Cb_G * u  + Cr_G * v;
     float const b = y + Cb_B * u;

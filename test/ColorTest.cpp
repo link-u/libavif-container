@@ -40,10 +40,7 @@ TEST(ColorTest, FullTest) {
     uint16_t u = 0;
     uint16_t v = 0;
     detail::calcYUV<MatrixType::MC_BT_2020_NCL, 8, 12, false, true>(255, 0, 0, &y, &u, &v);
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-    std::tie(r,g,b) = detail::calcRGB<MatrixType::MC_BT_2020_NCL, 8, 12, false, true>(&y, &u, &v);
+    auto [r,g,b] = detail::calcRGB<MatrixType::MC_BT_2020_NCL, 8, 12, false, true>(&y, &u, &v);
     ASSERT_EQ(255, r);
     ASSERT_EQ(0, g);
     ASSERT_EQ(0, b);
