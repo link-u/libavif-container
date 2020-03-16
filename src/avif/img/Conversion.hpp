@@ -43,24 +43,111 @@ struct Converter {
   }
 };
 
-template <>
-struct Converter<MatrixType::MC_BT_2020_NCL> {
-  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
-    *y = 0.2627f * r + 0.6780f * g + 0.0593f * b;
+template <float const& Kr, float const& Kb>
+struct KrKbConverter {
+  static constexpr float Kg = 1.0f - Kr -Kb;
+  constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) const {
+    *y = Kr * r + Kg * g + Kb * b;
     if (u) {
-      *u = (b - *y) / 1.8814f;
+      *u = (b - *y) / (1.0f - Kb);
     }
     if (v) {
-      *v = (r - *y) / 1.4746f;
+      *v = (r - *y) / (1.0f - Kr);
     }
   }
-  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
-    float const r = y                    + (+1.47460f) * v;
-    float const g = y + (-0.16455f) * u  + (-0.57135f) * v;
-    float const b = y + (+1.88140f) * u;
+  constexpr std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
+    // Setup Matrix
+    constexpr float Cb_B =  2.0f * (1.0f - Kb);
+    constexpr float Cb_G = -2.0f * (1.0f - Kb) * Kb / Kg;
+
+    constexpr float Cr_R =  2.0f * (1.0f - Kr);
+    constexpr float Cr_G = -2.0f * (1.0f - Kr) * Kr / Kg;
+
+    float const r = y             + Cr_R * v;
+    float const g = y + Cb_G * u  + Cr_G * v;
+    float const b = y + Cb_B * u;
     return std::make_tuple(r, g, b);
   }
 };
+
+template <>
+struct Converter<MatrixType::MC_BT_709> {
+  constexpr static float Kr = 0.2126f;
+  constexpr static float Kb = 0.0722f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
+template <>
+struct Converter<MatrixType::MC_FCC> {
+  constexpr static float Kr = 0.30f;
+  constexpr static float Kb = 0.11f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
+template <>
+struct Converter<MatrixType::MC_BT_470_B_G> {
+  constexpr static float Kr = 0.299f;
+  constexpr static float Kb = 0.114f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
+template <>
+struct Converter<MatrixType::MC_BT_601> {
+  constexpr static float Kr = 0.299f;
+  constexpr static float Kb = 0.114f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
+template <>
+struct Converter<MatrixType::MC_SMPTE_240> {
+  constexpr static float Kr = 0.212f;
+  constexpr static float Kb = 0.087f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
+template <>
+struct Converter<MatrixType::MC_BT_2020_NCL> {
+  constexpr static float Kr = 0.2627f;
+  constexpr static float Kb = 0.0593f;
+  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
+    impl.calcYUV(r, g, b, y, u, v);
+  }
+  std::tuple<float, float, float> calcRGB(float y, float u, float v) {
+    return impl.calcRGB(y, u, v);
+  }
+};
+
 
 template <MatrixType matrixType, size_t rgbBits, size_t yuvBits, bool isMonoYUV, bool isFullRange>
 constexpr void calcYUV(uint16_t const ir, uint16_t const ig, uint16_t const ib, typename avif::img::spec::YUV<yuvBits>::Type* dstY, typename avif::img::spec::YUV<yuvBits>::Type* dstU, typename avif::img::spec::YUV<yuvBits>::Type* dstV) {
