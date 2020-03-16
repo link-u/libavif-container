@@ -58,7 +58,6 @@ public:
   ,stride_(stride)
   ,data_(std::move(data))
   {
-
   }
   static Image createEmptyImage(PixelOrder const pixelOrder, uint32_t const width, uint32_t const height) {
     std::vector<uint8_t> dstBuff;
