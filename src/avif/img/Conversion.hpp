@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cmath>
 #include <tuple>
-
+#include "../av1/SequenceHeader.hpp"
 #include "Spec.hpp"
 #include "Image.hpp"
 
