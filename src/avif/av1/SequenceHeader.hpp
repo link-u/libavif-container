@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <vector>
+#include <cstdint>
+#include <optional>
+
 #include "Header.hpp"
 
 namespace avif::av1 {
