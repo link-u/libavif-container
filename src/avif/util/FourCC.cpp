@@ -2,8 +2,6 @@
 // Created by psi on 2020/01/12.
 //
 
-#pragma once
-
 #include "./FourCC.hpp"
 
 namespace avif::util {
