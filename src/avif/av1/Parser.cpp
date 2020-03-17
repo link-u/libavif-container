@@ -299,9 +299,9 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
   }
   cfg.colorDescriptionPresentFlag = readBool();
   if (cfg.colorDescriptionPresentFlag) {
-    cfg.colorPrimaries = static_cast<SequenceHeader::ColorConfig::ColorPrimaries>(readU8());
-    cfg.transferCharacteristics = static_cast<SequenceHeader::ColorConfig::TransferCharacteristics>(readU8());
-    cfg.matrixCoefficients = static_cast<SequenceHeader::ColorConfig::MatrixCoefficients>(readU8());
+    cfg.colorPrimaries = static_cast<avif::img::ColorPrimaries>(readU8());
+    cfg.transferCharacteristics = static_cast<avif::img::TransferCharacteristics>(readU8());
+    cfg.matrixCoefficients = static_cast<avif::img::MatrixCoefficients>(readU8());
   }
   if (cfg.monochrome) {
     cfg.colorRange = readBool();
@@ -311,9 +311,9 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
     cfg.separateUVDeltaQ = false;
     return cfg;
   } else if (
-      cfg.colorPrimaries == SequenceHeader::ColorConfig::ColorPrimaries::CP_BT_709 &&
-          cfg.transferCharacteristics == SequenceHeader::ColorConfig::TransferCharacteristics::TC_SRGB &&
-          cfg.matrixCoefficients == SequenceHeader::ColorConfig::MatrixCoefficients::MC_IDENTITY) {
+      cfg.colorPrimaries == avif::img::ColorPrimaries::CP_BT_709 &&
+          cfg.transferCharacteristics == avif::img::TransferCharacteristics::TC_SRGB &&
+          cfg.matrixCoefficients == avif::img::MatrixCoefficients::MC_IDENTITY) {
     cfg.colorRange = true;
     cfg.subsamplingX = 0;
     cfg.subsamplingY = 0;
