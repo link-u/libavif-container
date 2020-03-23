@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstdint>
 #include <cassert>
+#include <variant>
 
 #include "Spec.hpp"
 
@@ -18,6 +19,48 @@ enum class PixelOrder {
   RGB, /* [R,G,B], [R,G,B], ... */
   RGBA, /* [R,G,B,A], [R,G,B,A], ... */
 };
+
+class ICCProfile final {
+public:
+  ICCProfile() = delete;
+  ICCProfile(ICCProfile const&) = default;
+  ICCProfile(ICCProfile&&) = default;
+  ICCProfile& operator=(ICCProfile const&) = default;
+  ICCProfile& operator=(ICCProfile&&) = default;
+
+public:
+  ICCProfile(std::vector<uint8_t> payload)
+  :payload_(std::move(payload)){
+
+  }
+  [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
+    return this->payload_;
+  }
+private:
+  std::vector<uint8_t> payload_;
+};
+
+class RestrictedICCProfile final {
+public:
+  RestrictedICCProfile() = delete;
+  RestrictedICCProfile(RestrictedICCProfile const&) = default;
+  RestrictedICCProfile(RestrictedICCProfile&&) = default;
+  RestrictedICCProfile& operator=(RestrictedICCProfile const&) = default;
+  RestrictedICCProfile& operator=(RestrictedICCProfile&&) = default;
+
+public:
+  RestrictedICCProfile(std::vector<uint8_t> payload)
+  :payload_(std::move(payload)){
+
+  }
+  [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
+    return this->payload_;
+  }
+private:
+  std::vector<uint8_t> payload_;
+};
+
+using ColorProfile = std::variant<std::monostate, ICCProfile, RestrictedICCProfile>;
 
 template <size_t BitsPerComponent>
 class Image final {
@@ -38,6 +81,7 @@ private:
     }
   }
 private:
+  ColorProfile colorProfile_;
   PixelOrder pixelOrder_{};
   uint32_t width_{};
   uint32_t height_{};
@@ -51,8 +95,9 @@ public:
   Image& operator=(Image&&) noexcept = default;
   ~Image() noexcept = default;
 public:
-  explicit Image(PixelOrder pixelOrder, uint32_t width, uint32_t height, uint32_t bytesPerPiexl, uint32_t stride, std::vector<uint8_t> data)
-  :pixelOrder_(pixelOrder)
+  explicit Image(ColorProfile colorProfile, PixelOrder pixelOrder, uint32_t width, uint32_t height, uint32_t bytesPerPiexl, uint32_t stride, std::vector<uint8_t> data)
+  :colorProfile_(std::move(colorProfile))
+  ,pixelOrder_(pixelOrder)
   ,width_(width)
   ,height_(height)
   ,stride_(stride)
@@ -65,6 +110,9 @@ public:
     size_t const stride = bytesPerPixel * width;
     dstBuff.resize(stride * height);
     return Image(pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
+  }
+  [[ nodiscard ]] ColorProfile const& colorProfile() const {
+    return this->colorProfile_;
   }
   [[ nodiscard ]] PixelOrder pixelOrder() const {
     return this->pixelOrder_;
