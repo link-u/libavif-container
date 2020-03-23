@@ -109,9 +109,12 @@ public:
     size_t const bytesPerPixel = calcNumComponents(pixelOrder) * spec::RGB<BitsPerComponent>::bytesPerComponent;
     size_t const stride = bytesPerPixel * width;
     dstBuff.resize(stride * height);
-    return Image(pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
+    return Image(avif::img::ColorProfile(), pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
   }
   [[ nodiscard ]] ColorProfile const& colorProfile() const {
+    return this->colorProfile_;
+  }
+  [[ nodiscard ]] ColorProfile& colorProfile() {
     return this->colorProfile_;
   }
   [[ nodiscard ]] PixelOrder pixelOrder() const {
