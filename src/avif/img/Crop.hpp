@@ -50,7 +50,7 @@ Image<BitsPerComponent> crop(Image<BitsPerComponent> const& src, CleanApertureBo
     srcLine += srcStride;
     dstLine += dstStride;
   }
-  return std::move(dst);
+  return dst;
 }
 
 }

@@ -26,7 +26,7 @@ Image <BitsPerComponent> flip(Image <BitsPerComponent> const & src, ImageMirrorB
       assert("Do not come here" && (axis == ImageMirrorBox::Axis::Horizontal || axis == ImageMirrorBox::Axis::Vertical));
       break;
   }
-  return std::move(dst);
+  return dst;
 }
 
 template <size_t BitsPerComponent>
@@ -57,7 +57,7 @@ Image <BitsPerComponent> rotate(Image<BitsPerComponent> const & src, ImageRotati
       assert("Do not come here" && (rotation == ImageRotationBox::Rotation::Rot0 || rotation == ImageRotationBox::Rotation::Rot90 || rotation == ImageRotationBox::Rotation::Rot180 || rotation == ImageRotationBox::Rotation::Rot270));
       break;
   }
-  return std::move(dst);
+  return dst;
 }
 
 }

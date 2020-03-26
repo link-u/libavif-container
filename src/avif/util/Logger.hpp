@@ -107,7 +107,7 @@ private:
         output = tfm::format("[%s FATAL] %s", time, msg);
     }
     this->writeLog_(level, output);
-    return std::move(msg);
+    return msg;
   }
   virtual void writeLog_(Level lv, std::string const& msg) = 0;
 };
