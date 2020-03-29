@@ -3,8 +3,6 @@ project(libavif-container)
 
 add_library(
         libavif-container
-        # 3rd party
-        external/tinyformat/tinyformat.h
         # sources
         src/avif/util/File.cpp
         src/avif/util/File.hpp
@@ -83,6 +81,62 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_link_libraries(libavif-container PRIVATE stdc++fs)
 endif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
+###############################################################################
+option(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS "Embed Little CMS" ON)
+include(ExternalProject)
+
+if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
+    find_program(MAKE_EXE NAMES gmake nmake make)
+
+    IF(CMAKE_BUILD_TYPE MATCHES Release)
+        ExternalProject_Add(lcms_repo
+            PREFIX "${CMAKE_BINARY_DIR}"
+            URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+            CONFIGURE_COMMAND
+            ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
+            --prefix=${CMAKE_BINARY_DIR}
+            --enable-static
+            --disable-shared
+            --without-zlib
+            --without-threads
+            --without-jpeg
+            --without-tiff
+            BUILD_COMMAND ${MAKE_EXE}
+            INSTALL_DIR ${CMAKE_BINARY_DIR}
+            INSTALL_COMMAND ${MAKE_EXE} install
+            )
+    ELSE()
+        ExternalProject_Add(lcms_repo
+            PREFIX "${CMAKE_BINARY_DIR}"
+            URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+            CONFIGURE_COMMAND
+            env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
+            --prefix=${CMAKE_BINARY_DIR}
+            --enable-static
+            --disable-shared
+            --without-zlib
+            --without-threads
+            --without-jpeg
+            --without-tiff
+            BUILD_COMMAND ${MAKE_EXE}
+            INSTALL_DIR ${CMAKE_BINARY_DIR}
+            INSTALL_COMMAND ${MAKE_EXE} install
+            )
+    ENDIF()
+    add_dependencies(libavif-container lcms_repo)
+    target_link_directories(libavif-container PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/lib")
+    target_link_libraries(libavif-container PRIVATE lcms2)
+ENDIF(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
+###############################################################################
+option(LIBAVIF_CONTAINER_EMBED_FMT "Embed fmt::fmt" ON)
+IF(LIBAVIF_CONTAINER_EMBED_FMT)
+    # fmt
+    set(FMT_TEST OFF CACHE BOOL "" FORCE)
+    set(FMT_FUZZ OFF CACHE BOOL "" FORCE)
+    add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
+    target_link_libraries(libavif-container PRIVATE fmt::fmt)
+    target_include_directories(libavif-container PRIVATE fmt::fmt)
+ENDIF(LIBAVIF_CONTAINER_EMBED_FMT)
 ###############################################################################
 option(LIBAVIF_CONTAINER_BUILD_TESTS "Build the tests" OFF)
 if(LIBAVIF_CONTAINER_BUILD_TESTS)

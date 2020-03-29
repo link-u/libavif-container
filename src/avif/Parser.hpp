@@ -9,13 +9,14 @@
 #include <memory>
 #include <variant>
 #include <string>
+#include <fmt/format.h>
+
 #include "util/Logger.hpp"
 #include "util/StreamReader.hpp"
 #include "Box.hpp"
 #include "FullBox.hpp"
 #include "FileBox.hpp"
 #include "FileTypeBox.hpp"
-#include "../../external/tinyformat/tinyformat.h"
 #include "PrimaryItemBox.hpp"
 #include "ImageMirrorBox.hpp"
 #include "ColourInformationBox.hpp"
@@ -34,9 +35,10 @@ public:
     template <typename ...Args>
     explicit Error(std::string const& fmt, Args &&... args)
     :std::exception()
-    ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...)){
+    ,msg_(fmt::format(fmt, std::forward<Args>(args)...)){
     }
-    explicit Error(std::exception const& err):std::exception(), msg_(tfm::format("[stdlib] %s", err.what())) {
+    explicit Error(std::exception const& err):std::exception(), msg_(fmt::format("[stdlib] {}", err.what()))
+    {
     }
     explicit Error(std::string  msg):std::exception(), msg_(std::move(msg)) {
     }
@@ -88,7 +90,7 @@ public:
         if(this->ok()) {
           return std::get<FileBox>(this->result_);
         } else {
-          throw std::domain_error(tfm::format("ParseResult is an error: %s", error()));
+          throw std::domain_error(fmt::format("ParseResult is an error: {}", error()));
         }
       }
     };

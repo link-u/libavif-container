@@ -42,7 +42,7 @@ Writer::BoxContext Writer::beginFullBoxHeader(const char type[4], FullBox& box) 
 
 void Writer::putTypeString(std::string const& type) {
   if(type.size() != 4) {
-    throw std::out_of_range(tfm::format("The length of type string must be 4, got %s", type));
+    throw std::out_of_range(fmt::format("The length of type string must be 4, got {}", type));
   }
   this->putU32(str2uint(type.c_str()));
 }
@@ -159,7 +159,7 @@ void Writer::writeItemPropertyContainer(ItemPropertyContainer& box) {
     } else if (std::holds_alternative<AV1CodecConfigurationRecordBox>(prop)) {
       this->writeAV1CodecConfigurationRecordBox(std::get<AV1CodecConfigurationRecordBox>(prop));
     } else {
-      throw std::logic_error(tfm::format("Unknown box type: %s, idx=%d", typeid(prop).name(), prop.index()));
+      throw std::logic_error(fmt::format("Unknown box type: {}, idx={}", typeid(prop).name(), prop.index()));
     }
   }
 }
@@ -338,7 +338,7 @@ void Writer::writeItemInfoEntry(ItemInfoEntry& box) {
     } else if(box.version() == 3) {
       putU32(box.itemID);
     } else {
-      throw std::runtime_error(tfm::format("ItemInfoEntry with version=%d not supported.", box.version()));
+      throw std::runtime_error(fmt::format("ItemInfoEntry with version={} not supported.", box.version()));
     }
     putU16(box.itemProtectionIndex);
     uint32_t const itemType = str2uint(box.itemType.value().c_str());
@@ -367,7 +367,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
   } else if(box.version() == 2) {
     putU32(box.items.size());
   } else {
-    throw std::runtime_error(tfm::format("Unknwon ItemLocationBox version=%d", box.version()));
+    throw std::runtime_error(fmt::format("Unknwon ItemLocationBox version={}", box.version()));
   }
   for (auto& item : box.items) {
     if (box.version() < 2) {
@@ -375,7 +375,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
     } else if(box.version() == 2) {
       putU32(item.itemID);
     } else {
-      throw std::runtime_error(tfm::format("Unknwon ItemLocationBox version=%d", box.version()));
+      throw std::runtime_error(fmt::format("Unknwon ItemLocationBox version={}", box.version()));
     }
     if (box.version() == 1 || box.version() == 2) {
       putU16(item.constructionMethod);
@@ -391,7 +391,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
         putU64(item.baseOffset);
         break;
       default:
-        throw std::runtime_error(tfm::format("Illegal base offset size=%d", box.baseOffsetSize));
+        throw std::runtime_error(fmt::format("Illegal base offset size={}", box.baseOffsetSize));
     }
     putU16(item.extents.size());
     for (auto& extent : item.extents) {
@@ -406,7 +406,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
             putU64(extent.extentIndex);
             break;
           default:
-            throw std::runtime_error(tfm::format("Illegal index size=%d", box.indexSize));
+            throw std::runtime_error(fmt::format("Illegal index size={}", box.indexSize));
         }
       }
       switch (box.offsetSize) {
@@ -419,7 +419,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
           putU64(extent.extentOffset);
           break;
         default:
-          throw std::runtime_error(tfm::format("Illegal offset size=%d", box.offsetSize));
+          throw std::runtime_error(fmt::format("Illegal offset size={}", box.offsetSize));
       }
       switch (box.lengthSize) {
         case 0:
@@ -431,7 +431,7 @@ void Writer::writeItemLocationBox(ItemLocationBox& box) {
           putU64(extent.extentLength);
           break;
         default:
-          throw std::runtime_error(tfm::format("Illegal length size=%d", box.lengthSize));
+          throw std::runtime_error(fmt::format("Illegal length size={}", box.lengthSize));
       }
     }
   }

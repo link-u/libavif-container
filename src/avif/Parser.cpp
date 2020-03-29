@@ -6,7 +6,7 @@
 #include <string>
 #include <memory>
 
-#include "../../external/tinyformat/tinyformat.h"
+#include <fmt/format.h>
 #include "util/Logger.hpp"
 
 #include "Parser.hpp"
@@ -102,10 +102,10 @@ void Parser::parseFileTypeBox(FileTypeBox& box, size_t const end) {
   uint32_t const majorBrand = readU32();
   uint32_t const minorVersion = readU32();
   if(str2uint("avif") != majorBrand) {
-    throw Error("Unsupported brand: %s", uint2str(majorBrand));
+    throw Error("Unsupported brand: {}", uint2str(majorBrand));
   }
   if(minorVersion != 0) {
-    throw Error("We currently just support version 0(!=%d)", minorVersion);
+    throw Error("We currently just support version 0(!={})", minorVersion);
   }
   std::vector<std::string> compatibleBrands;
   while(this->pos() < end) {
@@ -206,7 +206,7 @@ void Parser::parseHandlerBox(HandlerBox& box, size_t const end) {
       log().warn("NULL header type in HeaderBox");
       break;
     default:
-      log().warn("Unknown header type=%s in HeaderBox", uint2str(handlerType));
+      log().warn("Unknown header type={} in HeaderBox", uint2str(handlerType));
       break;
   }
 }
@@ -217,7 +217,7 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
   {
     Box::Header const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipco")) {
-      throw Error("ItemPropertyContainer expected, got %s", uint2str(hdr.type));
+      throw Error("ItemPropertyContainer expected, got {}", uint2str(hdr.type));
     }
     box.propertyContainers.hdr = hdr;
     // https://github.com/nokiatech/heif/blob/master/srcs/common/itempropertycontainer.cpp
@@ -230,7 +230,7 @@ void Parser::parseItemPropertiesBox(ItemPropertiesBox& box, size_t const end) {
   while(this->pos() < end) {
     Box::Header const hdr = readBoxHeader();
     if(hdr.type != str2uint("ipma")) {
-      throw Error("ItemPropertyAssociation(ipma) expected, got %s", uint2str(hdr.type));
+      throw Error("ItemPropertyAssociation(ipma) expected, got {}", uint2str(hdr.type));
     }
     ItemPropertyAssociation itemPropertyAssociation{};
     itemPropertyAssociation.hdr = hdr;
@@ -462,7 +462,7 @@ void Parser::parseColourInformationBox(ColourInformationBox& box, uint32_t end) 
       break;
     }
     default:
-      throw Error("Unknown profile type: %s", uint2str(colourType));
+      throw Error("Unknown profile type: {}", uint2str(colourType));
   }
 }
 void Parser::parseContentLightLevelBox(ContentLightLevelBox& box, uint32_t end) {
@@ -550,7 +550,7 @@ void Parser::parseItemInfoBox(ItemInfoBox& box, size_t const end) {
   for(uint32_t i = 0; i < entryCount; ++i) {
     Box::Header hdr = readBoxHeader();
     if(hdr.type != str2uint("infe")) {
-      throw Error("'infe' expected in ItemInfoBox, got %s", uint2str(hdr.type));
+      throw Error("'infe' expected in ItemInfoBox, got {}", uint2str(hdr.type));
     }
     ItemInfoEntry entry;
     entry.hdr = hdr;
@@ -586,7 +586,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
       break;
     }
       default:
-        throw Error("Unknwon ItemInfoExtension with type = %s", uint2str(extensionType));
+        throw Error("Unknwon ItemInfoExtension with type = {}", uint2str(extensionType));
     }
   }
   if(box.version() >= 2) {
@@ -595,7 +595,7 @@ void Parser::parseItemInfoEntry(ItemInfoEntry& box, size_t const end) {
     } else if(box.version() == 3) {
       box.itemID = readU32();
     } else {
-      throw Error("ItemInfoEntry with version=%d not supported.", box.version());
+      throw Error("ItemInfoEntry with version={} not supported.", box.version());
     }
     box.itemProtectionIndex = readU16();
     uint32_t const itemType = readU32();
@@ -622,21 +622,21 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
   uint32_t v = readU8();
   box.offsetSize = static_cast<uint8_t>(v >> 4u);
   if(!(box.offsetSize == 0 || box.offsetSize == 4 || box.offsetSize == 8)) {
-    throw Error("Invalid ItemLocationBox::offsetSize=%d", box.offsetSize);
+    throw Error("Invalid ItemLocationBox::offsetSize={}", box.offsetSize);
   }
   box.lengthSize = static_cast<uint8_t>(v & 0xfu);
   if(!(box.lengthSize == 0 || box.lengthSize == 4 || box.lengthSize == 8)) {
-    throw Error("Invalid ItemLocationBox::lengthSize=%d", box.offsetSize);
+    throw Error("Invalid ItemLocationBox::lengthSize={}", box.offsetSize);
   }
   v = readU8();
   box.baseOffsetSize = static_cast<uint8_t>(v >> 4u);
   if(!(box.baseOffsetSize == 0 || box.baseOffsetSize == 4 || box.baseOffsetSize == 8)) {
-    throw Error("Invalid ItemLocationBox::baseOffsetSize=%d", box.offsetSize);
+    throw Error("Invalid ItemLocationBox::baseOffsetSize={}", box.offsetSize);
   }
   if(box.version() == 1 || box.version() == 2) {
     box.indexSize = static_cast<uint8_t>(v & 0xfu);
     if(!(box.indexSize == 0 || box.indexSize == 4 || box.indexSize == 8)) {
-      throw Error("Invalid ItemLocationBox::baseOffsetSize=%d", box.offsetSize);
+      throw Error("Invalid ItemLocationBox::baseOffsetSize={}", box.offsetSize);
     }
   }
   uint32_t itemCount = 0;
@@ -645,7 +645,7 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
   }else if(box.version() == 2){
     itemCount = readU32();
   }else{
-    throw Error("Unknwon ItemLocationBox version=%d", box.version());
+    throw Error("Unknwon ItemLocationBox version={}", box.version());
   }
   for(uint32_t i = 0; i < itemCount; ++i) {
     ItemLocationBox::Item item{};
@@ -654,7 +654,7 @@ void Parser::parseItemLocationBox(ItemLocationBox& box, size_t const end) {
     } else if (box.version() == 2) {
       item.itemID = readU32();
     } else {
-      throw Error("Unknwon ItemLocationBox version=%d", box.version());
+      throw Error("Unknwon ItemLocationBox version={}", box.version());
     }
     if (box.version() == 1 || box.version() == 2) {
       item.constructionMethod = readU16() & 0x7u;
@@ -740,7 +740,7 @@ Box::Header Parser::readBoxHeader() {
     hdr.size = this->buffer_.size() - hdr.offset;
   }
   if((hdr.end()) > this->buffer_.size()) {
-    throw Error("File corrupted. Detected at %s box, from %d to %d, but buffer.size = %d.", uint2str(hdr.type), hdr.offset, hdr.end(), this->buffer_.size());
+    throw Error("File corrupted. Detected at {} box, from {} to {}, but buffer.size = {}.", uint2str(hdr.type), hdr.offset, hdr.end(), this->buffer_.size());
   }
   return hdr;
 }
@@ -755,7 +755,7 @@ void Parser::parseFullBoxHeader(FullBox& fullBox) {
 
 void Parser::warningUnknownBox(Box::Header const& hdr) {
   std::string typeStr = uint2str(hdr.type);
-  log().warn("Unknown box type=%s(=0x%0lx) with size=%ld(%ld~%ld/%ld)", typeStr.c_str(), hdr.type, hdr.size, hdr.offset, hdr.end(), this->buffer_.size());
+  log().warn("Unknown box type={}(=0x{:x}) with size={}({}~{}/{})", typeStr.c_str(), hdr.type, hdr.size, hdr.offset, hdr.end(), this->buffer_.size());
 }
 
 }

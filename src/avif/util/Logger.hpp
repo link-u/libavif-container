@@ -6,7 +6,8 @@
 
 #include <string>
 #include <iomanip>
-#include "../../../external/tinyformat/tinyformat.h"
+#include <sstream>
+#include <fmt/format.h>
 
 namespace avif::util {
 
@@ -80,7 +81,7 @@ private:
     if (level_ > level) {
       return "";
     }
-    std::string const msg = tfm::format(fmt.c_str(), std::forward<Args>(args)...);
+    std::string const msg = fmt::format(fmt.c_str(), std::forward<Args>(args)...);
     time_t t = time(nullptr);
     tm tm = *localtime(&t);
     std::stringstream ss;
@@ -89,22 +90,22 @@ private:
     std::string output{};
     switch (level) {
       case Level::TRACE:
-        output = tfm::format("[%s TRACE] %s", time, msg);
+        output = fmt::format("[{} TRACE] {}", time, msg);
         break;
       case Level::DEBUG:
-        output = tfm::format("[%s DEBUG] %s", time, msg);
+        output = fmt::format("[{} DEBUG] {}", time, msg);
         break;
       case Level::INFO:
-        output = tfm::format("[%s INFO ] %s", time, msg);
+        output = fmt::format("[{} INFO ] {}", time, msg);
         break;
       case Level::WARN:
-        output = tfm::format("[%s WARN ] %s", time, msg);
+        output = fmt::format("[{} WARN ] {}", time, msg);
         break;
       case Level::ERROR:
-        output = tfm::format("[%s ERROR] %s", time, msg);
+        output = fmt::format("[{} ERROR] {}", time, msg);
         break;
       case Level::FATAL:
-        output = tfm::format("[%s FATAL] %s", time, msg);
+        output = fmt::format("[{} FATAL] {}", time, msg);
     }
     this->writeLog_(level, output);
     return msg;

@@ -26,10 +26,10 @@ public:
     template <typename ...Args>
     explicit Error(std::string const& fmt, Args &&... args)
     :std::exception()
-     ,msg_(tfm::format(fmt.c_str(), std::forward<Args>(args)...))
+     ,msg_(fmt::format(fmt.c_str(), std::forward<Args>(args)...))
     {
     }
-    explicit Error(std::exception const& err):std::exception(), msg_(tfm::format("[stdlib] %s", err.what())) {
+    explicit Error(std::exception const& err):std::exception(), msg_(fmt::format("[stdlib] {}", err.what())) {
     }
     explicit Error(std::string  msg):std::exception(), msg_(std::move(msg)) {
     }
@@ -107,7 +107,7 @@ public:
       if(this->ok()) {
         return std::get<std::vector<Packet>>(this->result_);
       } else {
-        throw std::domain_error(tfm::format("ParseResult is an error: %s", error()));
+        throw std::domain_error(fmt::format("ParseResult is an error: {}", error()));
       }
     }
   };

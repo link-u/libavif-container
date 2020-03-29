@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <cmath>
 #include <tuple>
-#include "../../../external/tinyformat/tinyformat.h"
+#include <fmt/format.h>
 #include "Spec.hpp"
 #include "Image.hpp"
 
@@ -95,10 +95,10 @@ namespace detail {
 template <MatrixCoefficients mat>
 struct Converter {
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
-    throw std::logic_error(tfm::format("[TODO] MatrixCoefficients = %d is not implemented yet.", static_cast<uint8_t>(mat)));
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat)));
   }
   std::tuple<float, float, float> calcRGB(float y, float u, float v) {
-    throw std::logic_error(tfm::format("[TODO] MatrixCoefficients = %d is not implemented yet.", static_cast<uint8_t>(mat)));
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat)));
   }
 };
 

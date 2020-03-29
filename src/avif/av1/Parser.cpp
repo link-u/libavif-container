@@ -66,7 +66,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       // 5.6.
       // Note: The temporal delimiter has an empty payload.
       if(size != 0) {
-        throw Error("Invalid temporal delimiter with size=%ld", size);
+        throw Error("Invalid temporal delimiter with size={}", size);
       }
       content = TemporalDelimiter();
       break;
@@ -84,7 +84,7 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
       content = Padding();
       break;
     default:
-      throw Error("unknown obu type = %d", static_cast<uint8_t>(hdr.type));
+      throw Error("unknown obu type = {}", static_cast<uint8_t>(hdr.type));
   }
   size_t const currentPosition = this->posInBits();
   size_t const payloadBits = currentPosition - startPosition;
@@ -103,13 +103,13 @@ std::optional<Parser::Result::Packet> Parser::parsePacket() {
     while(bitsToRead >= 8u) {
       uint8_t const zero = this->readU8();
       if(zero != 0u) {
-        throw Error("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero);
+        throw Error("trailing_zero_bit must be 0, but got {}. Is that a corrupted file?", zero);
       }
       bitsToRead -= 8u;
     }
     uint8_t const zero = this->readBits(bitsToRead);
     if(zero != 0u) {
-      throw Error("trailing_zero_bit must be 0, but got %d. Is that a corrupted file?", zero);
+      throw Error("trailing_zero_bit must be 0, but got {}. Is that a corrupted file?", zero);
     }
   }
   seekInBytes(end);
@@ -290,7 +290,7 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
   } else if (shdr.seqProfile <= 2) {
     bitDepth = cfg.highBitdepth ? 10 : 8;
   } else {
-    throw Error("unknown or unsupported seq profile: %d", shdr.seqProfile);
+    throw Error("unknown or unsupported seq profile: {}", shdr.seqProfile);
   }
   if (shdr.seqProfile == 1) {
     cfg.monochrome = false;
