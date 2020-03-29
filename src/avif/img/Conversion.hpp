@@ -8,6 +8,7 @@
 #include <cmath>
 #include <tuple>
 #include <fmt/format.h>
+#import "ColorSpace.hpp"
 #include "Spec.hpp"
 #include "Image.hpp"
 
@@ -118,37 +119,9 @@ struct Converter<MatrixCoefficients::MC_IDENTITY> {
   }
 };
 
-template <float const& Kr, float const& Kb>
-struct KrKbConverter {
-  static constexpr float Kg = 1.0f - Kr -Kb;
-  static constexpr float Cb_B =  2.0f * (1.0f - Kb);
-  static constexpr float Cb_G = -2.0f * (1.0f - Kb) * Kb / Kg;
-
-  static constexpr float Cr_R =  2.0f * (1.0f - Kr);
-  static constexpr float Cr_G = -2.0f * (1.0f - Kr) * Kr / Kg;
-
-  constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) const {
-    *y = Kr * r + Kg * g + Kb * b;
-    if (u) {
-      *u = 0.5f * (b - *y) / (1.0f - Kb);
-    }
-    if (v) {
-      *v = 0.5f * (r - *y) / (1.0f - Kr);
-    }
-  }
-  constexpr std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
-    float const r = y             + Cr_R * v;
-    float const g = y + Cb_G * u  + Cr_G * v;
-    float const b = y + Cb_B * u;
-    return std::make_tuple(r, g, b);
-  }
-};
-
 template <>
 struct Converter<MatrixCoefficients::MC_BT_709> {
-  constexpr static float Kr = 0.2126f;
-  constexpr static float Kb = 0.0722f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.2126f, 0.0722f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }
@@ -159,9 +132,7 @@ struct Converter<MatrixCoefficients::MC_BT_709> {
 
 template <>
 struct Converter<MatrixCoefficients::MC_FCC> {
-  constexpr static float Kr = 0.30f;
-  constexpr static float Kb = 0.11f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.30f, 0.11f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }
@@ -172,9 +143,7 @@ struct Converter<MatrixCoefficients::MC_FCC> {
 
 template <>
 struct Converter<MatrixCoefficients::MC_BT_470_B_G> {
-  constexpr static float Kr = 0.299f;
-  constexpr static float Kb = 0.114f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.299f, 0.114f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }
@@ -185,9 +154,7 @@ struct Converter<MatrixCoefficients::MC_BT_470_B_G> {
 
 template <>
 struct Converter<MatrixCoefficients::MC_BT_601> {
-  constexpr static float Kr = 0.299f;
-  constexpr static float Kb = 0.114f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.299f, 0.114f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }
@@ -198,9 +165,7 @@ struct Converter<MatrixCoefficients::MC_BT_601> {
 
 template <>
 struct Converter<MatrixCoefficients::MC_SMPTE_240> {
-  constexpr static float Kr = 0.212f;
-  constexpr static float Kb = 0.087f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.212f, 0.087f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }
@@ -211,9 +176,7 @@ struct Converter<MatrixCoefficients::MC_SMPTE_240> {
 
 template <>
 struct Converter<MatrixCoefficients::MC_BT_2020_NCL> {
-  constexpr static float Kr = 0.2627f;
-  constexpr static float Kb = 0.0593f;
-  constexpr static KrKbConverter<Kr, Kb> impl = {};
+  static constexpr auto impl = ColorCoefficients(0.2627f, 0.0593f);
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     impl.calcYUV(r, g, b, y, u, v);
   }

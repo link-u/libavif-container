@@ -72,7 +72,7 @@ add_library(
         src/avif/av1/Query.hpp
         src/avif/av1/BitStreamReader.cpp
         src/avif/av1/BitStreamReader.hpp
-    src/avif/img/Image.cpp)
+    src/avif/img/Image.cpp src/avif/img/ColorSpace.hpp)
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")

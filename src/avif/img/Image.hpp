@@ -10,6 +10,7 @@
 #include <variant>
 
 #include "Spec.hpp"
+#include "ColorSpace.hpp"
 
 namespace avif::img {
 
@@ -18,12 +19,6 @@ enum class PixelOrder {
   MonoA, /* [Mono, A], [Mono, A], ... */
   RGB, /* [R,G,B], [R,G,B], ... */
   RGBA, /* [R,G,B,A], [R,G,B,A], ... */
-};
-
-struct ColorCoefficients final {
-  const float Kr;
-  const float Kg;
-  const float Kb;
 };
 
 class ICCProfile final {
