@@ -30,7 +30,7 @@ public:
   ICCProfile& operator=(ICCProfile&&) = default;
 
 public:
-  ICCProfile(std::vector<uint8_t> payload)
+  explicit ICCProfile(std::vector<uint8_t> payload)
   :payload_(std::move(payload)){
   }
   [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
@@ -43,27 +43,7 @@ private:
   std::vector<uint8_t> payload_;
 };
 
-class RestrictedICCProfile final {
-public:
-  RestrictedICCProfile() = delete;
-  RestrictedICCProfile(RestrictedICCProfile const&) = default;
-  RestrictedICCProfile(RestrictedICCProfile&&) = default;
-  RestrictedICCProfile& operator=(RestrictedICCProfile const&) = default;
-  RestrictedICCProfile& operator=(RestrictedICCProfile&&) = default;
-
-public:
-  RestrictedICCProfile(std::vector<uint8_t> payload)
-  :payload_(std::move(payload)){
-
-  }
-  [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
-    return this->payload_;
-  }
-private:
-  std::vector<uint8_t> payload_;
-};
-
-using ColorProfile = std::variant<std::monostate, ICCProfile, RestrictedICCProfile>;
+using ColorProfile = std::variant<std::monostate, ICCProfile>;
 
 template <size_t BitsPerComponent>
 class Image final {
