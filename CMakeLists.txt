@@ -91,7 +91,7 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
     IF(CMAKE_BUILD_TYPE MATCHES Release)
         ExternalProject_Add(lcms_repo
             PREFIX "${CMAKE_BINARY_DIR}"
-            URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+            URL "${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS"
             CONFIGURE_COMMAND
             ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
             --prefix=${CMAKE_BINARY_DIR}
@@ -108,7 +108,7 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
     ELSE()
         ExternalProject_Add(lcms_repo
             PREFIX "${CMAKE_BINARY_DIR}"
-            URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+            URL "${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS"
             CONFIGURE_COMMAND
             env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
             --prefix=${CMAKE_BINARY_DIR}
