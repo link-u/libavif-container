@@ -20,6 +20,12 @@ enum class PixelOrder {
   RGBA, /* [R,G,B,A], [R,G,B,A], ... */
 };
 
+struct ColorCoefficients final {
+  const float Kr;
+  const float Kg;
+  const float Kb;
+};
+
 class ICCProfile final {
 public:
   ICCProfile() = delete;
@@ -31,11 +37,13 @@ public:
 public:
   ICCProfile(std::vector<uint8_t> payload)
   :payload_(std::move(payload)){
-
   }
   [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
     return this->payload_;
   }
+
+  [[ nodiscard ]] ColorCoefficients calcColorCoefficients() const;
+
 private:
   std::vector<uint8_t> payload_;
 };

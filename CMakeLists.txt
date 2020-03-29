@@ -72,7 +72,7 @@ add_library(
         src/avif/av1/Query.hpp
         src/avif/av1/BitStreamReader.cpp
         src/avif/av1/BitStreamReader.hpp
-)
+    src/avif/img/Image.cpp)
 
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
@@ -124,9 +124,9 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
             )
     ENDIF()
     add_dependencies(libavif-container lcms_repo)
-    target_link_directories(libavif-container PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/lib")
-    target_include_directories(libavif-container PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
-    target_link_libraries(libavif-container PRIVATE lcms2)
+    target_include_directories(libavif-container PRIVATE "${CMAKE_BINARY_DIR}/include")
+    target_link_directories(libavif-container INTERFACE "${CMAKE_BINARY_DIR}/lib")
+    target_link_libraries(libavif-container INTERFACE lcms2)
 ELSE(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
     #FIXME(ledyba-z): How should we do?
 ENDIF(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
