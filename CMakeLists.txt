@@ -125,7 +125,10 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
     ENDIF()
     add_dependencies(libavif-container lcms_repo)
     target_link_directories(libavif-container PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/lib")
+    target_include_directories(libavif-container PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
     target_link_libraries(libavif-container PRIVATE lcms2)
+ELSE(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
+    #FIXME(ledyba-z): How should we do?
 ENDIF(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
 ###############################################################################
 option(LIBAVIF_CONTAINER_EMBED_FMT "Embed fmt::fmt" ON)
@@ -136,6 +139,8 @@ IF(LIBAVIF_CONTAINER_EMBED_FMT)
     add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
     target_link_libraries(libavif-container PRIVATE fmt::fmt)
     target_include_directories(libavif-container PRIVATE fmt::fmt)
+ELSE(LIBAVIF_CONTAINER_EMBED_FMT)
+    #FIXME(ledyba-z): How should we do?
 ENDIF(LIBAVIF_CONTAINER_EMBED_FMT)
 ###############################################################################
 option(LIBAVIF_CONTAINER_BUILD_TESTS "Build the tests" OFF)

@@ -2,6 +2,7 @@
 // Created by psi on 2020/01/08.
 //
 
+#include <cassert>
 #include "BitStreamReader.hpp"
 
 namespace avif::av1 {
