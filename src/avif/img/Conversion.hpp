@@ -8,7 +8,7 @@
 #include <cmath>
 #include <tuple>
 #include <fmt/format.h>
-#import "ColorSpace.hpp"
+#include "ColorSpace.hpp"
 #include "Spec.hpp"
 #include "Image.hpp"
 
