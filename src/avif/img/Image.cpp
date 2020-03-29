@@ -15,9 +15,6 @@ ColorCoefficients ICCProfile::calcColorCoefficients() const {
   cmsSetPCS(rgbProf, cmsSigXYZData);
   cmsSetDeviceClass(rgbProf, cmsSigInputClass);
 
-  auto xyzProf = cmsCreateXYZProfile();
-  cmsSetPCS(xyzProf, cmsSigXYZData);
-
   std::vector<cmsHPROFILE> profs = {rgbProf};
   auto transform = cmsCreateMultiprofileTransformTHR(nullptr, profs.data(), profs.size(), TYPE_RGB_8, TYPE_XYZ_FLT, 0,
                                                      0);
@@ -25,13 +22,22 @@ ColorCoefficients ICCProfile::calcColorCoefficients() const {
   std::vector<uint8_t> srcColor = {0xff, 0x00, 0x00};
   std::vector<float> dstColor = {0x00, 00, 00};
   cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
-  float const Kr = dstColor[0];
+  float const Kr = dstColor[1];
 
   srcColor = {0x00, 0x00, 0xff};
   cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
-  float const Kb = dstColor[0];
+  float const Kb = dstColor[1];
 
-  return ColorCoefficients(Kr, Kb);
+  srcColor = {0x00, 0xff, 0x00};
+  cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
+  float const Kg = dstColor[1];
+
+  float const total = Kr + Kg + Kb;
+
+  cmsDeleteTransform(transform);
+  cmsCloseProfile(rgbProf);
+
+  return ColorCoefficients(Kr / total, Kb / total);
 }
 
 }
