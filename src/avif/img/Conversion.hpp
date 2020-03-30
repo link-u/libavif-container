@@ -313,12 +313,12 @@ void constexpr convertFromYUV(ConverterImpl const& converter, size_t width, size
 
 namespace converters {
 
-constexpr auto BT_709 = ColorCoefficients(0.2126f, 0.0722f);
-constexpr auto FCC = ColorCoefficients(0.30f, 0.11f);
-constexpr auto BT_470_B_G = ColorCoefficients(0.299f, 0.114f);
-constexpr auto BT_601 = ColorCoefficients(0.299f, 0.114f);
-constexpr auto SMPTE_240 = ColorCoefficients(0.212f, 0.087f);
-constexpr auto MC_BT_2020_NCL = ColorCoefficients(0.2627f, 0.0593f);
+constexpr auto BT_709 = PrimariesConverter(0.2126f, 0.0722f);
+constexpr auto FCC = PrimariesConverter(0.30f, 0.11f);
+constexpr auto BT_470_B_G = PrimariesConverter(0.299f, 0.114f);
+constexpr auto BT_601 = PrimariesConverter(0.299f, 0.114f);
+constexpr auto SMPTE_240 = PrimariesConverter(0.212f, 0.087f);
+constexpr auto MC_BT_2020_NCL = PrimariesConverter(0.2627f, 0.0593f);
 constexpr auto Unimplementd(MatrixCoefficients const mat) {
   return detail::UnimplementedConverter(mat);
 };

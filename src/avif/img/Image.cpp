@@ -10,25 +10,25 @@ extern "C" {
 
 namespace avif::img {
 
-ColorCoefficients ICCProfile::calcColorCoefficients() const {
+PrimariesConverter ICCProfile::calcColorCoefficients() const {
   auto rgbProf = cmsOpenProfileFromMem(payload_.data(), payload_.size());
   cmsSetPCS(rgbProf, cmsSigXYZData);
   cmsSetDeviceClass(rgbProf, cmsSigInputClass);
 
   std::vector<cmsHPROFILE> profs = {rgbProf};
-  auto transform = cmsCreateMultiprofileTransformTHR(nullptr, profs.data(), profs.size(), TYPE_RGB_8, TYPE_XYZ_FLT, 0,
+  auto transform = cmsCreateMultiprofileTransformTHR(nullptr, profs.data(), profs.size(), TYPE_RGB_FLT, TYPE_XYZ_FLT, 0,
                                                      0);
 
-  std::vector<uint8_t> srcColor = {0xff, 0x00, 0x00};
-  std::vector<float> dstColor = {0x00, 00, 00};
+  std::vector<float> srcColor = {1.0f, 0.0f, 0.0f};
+  std::vector<float> dstColor = {0.0f, 0.0f, 0.0f};
   cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
   float const Kr = dstColor[1];
 
-  srcColor = {0x00, 0x00, 0xff};
+  srcColor = {0.0f, 0.0f, 1.0f};
   cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
   float const Kb = dstColor[1];
 
-  srcColor = {0x00, 0xff, 0x00};
+  srcColor = {0.0f, 1.0f, 0.0f};
   cmsDoTransform(transform, srcColor.data(), dstColor.data(), 1);
   float const Kg = dstColor[1];
 
@@ -37,7 +37,7 @@ ColorCoefficients ICCProfile::calcColorCoefficients() const {
   cmsDeleteTransform(transform);
   cmsCloseProfile(rgbProf);
 
-  return ColorCoefficients(Kr / total, Kb / total);
+  return PrimariesConverter(Kr / total, Kb / total);
 }
 
 }

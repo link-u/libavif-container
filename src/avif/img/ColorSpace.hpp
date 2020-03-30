@@ -8,10 +8,10 @@
 
 namespace avif::img {
 
-class ColorCoefficients final {
+class PrimariesConverter final {
 public:
-  ColorCoefficients() = delete;
-  constexpr ColorCoefficients(float const Kr, float const Kb)
+  PrimariesConverter() = delete;
+  constexpr PrimariesConverter(float const Kr, float const Kb)
   :Kr(Kr)
   ,Kb(Kb)
   ,Kg(1.0f - Kr -Kb)

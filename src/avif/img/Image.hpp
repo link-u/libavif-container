@@ -11,6 +11,7 @@
 
 #include "Spec.hpp"
 #include "ColorSpace.hpp"
+#include "../ColourInformationBox.hpp"
 
 namespace avif::img {
 
@@ -37,13 +38,13 @@ public:
     return this->payload_;
   }
 
-  [[ nodiscard ]] ColorCoefficients calcColorCoefficients() const;
+  [[ nodiscard ]] PrimariesConverter calcColorCoefficients() const;
 
 private:
   std::vector<uint8_t> payload_;
 };
 
-using ColorProfile = std::variant<std::monostate, ICCProfile>;
+using ColorProfile = std::variant<std::monostate, ICCProfile, ColourInformationBox::NCLX>;
 
 template <size_t BitsPerComponent>
 class Image final {
