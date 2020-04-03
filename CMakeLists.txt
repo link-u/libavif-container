@@ -98,7 +98,7 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
             --enable-static
             --disable-shared
             --without-zlib
-            --without-threads
+	    # --without-threads #FIXME(ledyba-z): We need to enable threads to build on Windows.
             --without-jpeg
             --without-tiff
             BUILD_COMMAND ${MAKE_EXE}
@@ -115,7 +115,7 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
             --enable-static
             --disable-shared
             --without-zlib
-            --without-threads
+	    # --without-threads #FIXME(ledyba-z): We need to enable threads to build on Windows.
             --without-jpeg
             --without-tiff
             BUILD_COMMAND ${MAKE_EXE}
