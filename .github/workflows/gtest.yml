@@ -4,17 +4,12 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-18.04
-
     steps:
     - uses: actions/checkout@v2
-    - name: Checkout submodules
-      shell: bash
-      run: |
-        sed -i -e 's/git\@github\.com\:/https\:\/\/github.com\//g' .gitmodules
-        git submodule sync --recursive
-        git submodule update --init --force --recursive
+      with:
+        submodules: 'recursive'
+        fetch-depth: 0
     - name: Install gcc-8 g++-8
       shell: bash
       run: |
