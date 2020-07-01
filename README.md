@@ -1,6 +1,6 @@
 # libavif-container
 
-![CI with GTest](https://github.com/link-u/libavif-container/workflows/CI%20with%20GTest/badge.svg)
+[![Unit tests](https://github.com/link-u/libavif-container/workflows/Unit%20tests/badge.svg)](https://github.com/link-u/libavif-container/actions?query=workflow%3A%22Unit+tests%22)
 
 A library to parsing and writing avif container.
 
