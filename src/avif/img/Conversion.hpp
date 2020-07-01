@@ -101,7 +101,7 @@ struct UnimplementedConverter {
   void calcYUV(float r, float g, float b, float* y, float* u, float* v) const {
     throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat_)));
   }
-  std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
+  [[nodiscard]] std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
     throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat_)));
   }
 
@@ -119,7 +119,7 @@ struct IdentityConverter {
       *v = r;
     }
   }
-  std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
+  [[nodiscard]] std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
     return {v, y, u};
   }
 };
