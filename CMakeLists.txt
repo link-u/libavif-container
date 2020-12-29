@@ -93,7 +93,7 @@ if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
             PREFIX "${CMAKE_BINARY_DIR}"
             URL "${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS"
             CONFIGURE_COMMAND
-            ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
+            ${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS/configure
             --prefix=${CMAKE_BINARY_DIR}
             --enable-static
             --disable-shared
