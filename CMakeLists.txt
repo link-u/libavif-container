@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(libavif-container)
+project(libavif-container CXX)
 
 add_library(
         libavif-container
