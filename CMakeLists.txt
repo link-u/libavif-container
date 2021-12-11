@@ -79,6 +79,8 @@ add_library(
 # https://cmake.org/cmake/help/latest/manual/cmake-compile-features.7.html#requiring-language-standards
 # https://stackoverflow.com/questions/45688522/how-to-enable-c17-in-cmake
 target_compile_features(libavif-container PRIVATE cxx_std_17)
+set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
+set_property(TARGET libavif-container PROPERTY CXX_STANDARD_REQUIRED ON)
 set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # FIXME(ledyba-z): workaround for gcc-8
