@@ -81,7 +81,9 @@ add_library(
 target_compile_features(libavif-container PRIVATE cxx_std_17)
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD 17)
 set_property(TARGET libavif-container PROPERTY CXX_STANDARD_REQUIRED ON)
-set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set_property(TARGET libavif-container PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+endif()
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # FIXME(ledyba-z): workaround for gcc-8
     target_link_libraries(libavif-container PRIVATE stdc++fs)
