@@ -14,7 +14,7 @@ std::variant<std::vector<uint8_t>, std::string> readFile(std::string const& fnam
     return std::variant<std::vector<uint8_t>, std::string>(fmt::format("File not found: {}", fname));
   }
   size_t const fsize = std::filesystem::file_size(fname);
-  FILE* file = fopen(fname.c_str(), "rb");
+  FILE* const file = fopen(fname.c_str(), "rb");
   if(!file) {
     return std::variant<std::vector<uint8_t>, std::string>(fmt::format("Could not open file: {}", fname));
   }
@@ -29,7 +29,7 @@ std::variant<std::vector<uint8_t>, std::string> readFile(std::string const& fnam
 }
 
 std::optional<std::string> writeFile(std::string const& fname, std::vector<uint8_t> const& data){
-  FILE* file = fopen(fname.c_str(), "wb");
+  FILE* const file = fopen(fname.c_str(), "wb");
   if(!file) {
     return std::make_optional(fmt::format("Could not open file: {}", fname));
   }
