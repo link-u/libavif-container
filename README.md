@@ -62,8 +62,9 @@ MIT
   https://github.com/nokiatech/heif/
 
 ## MIAF - MPEG-A Part 22 (ISO/IEC 23000-22:2019)
-- Information technology — Multimedia application format (MPEG-A) — Part 22: Multi-image application format (MIAF)
-  https://www.iso.org/standard/74417.html
+- [ISO/IEC 23000-22:2019<br>Information technology — Multimedia application format (MPEG-A) — Part 22: Multi-image application format (MIAF)](https://www.iso.org/standard/74417.html)
+  - [ISO/IEC 23000-22:2019/Amd 1:2021](https://www.iso.org/standard/80757.html)
+  - [ISO/IEC 23000-22:2019/Amd 2:2021](https://www.iso.org/standard/81634.html)
 - [MPEG MIAF Conformance Software Wasm demo](https://gpac.github.io/ComplianceWarden-wasm/)
 
 ## AVIF
