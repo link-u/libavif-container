@@ -220,9 +220,9 @@ void Writer::writeImageMirrorBox(ImageMirrorBox& box) {
 
 void Writer::writeColourInformationBox(ColourInformationBox& box) {
   auto context = this->beginBoxHeader("colr", box);
-  if(std::holds_alternative<ColourInformationBox::NCLX>(box.profile)) {
+  if(std::holds_alternative<ColourInformationBox::CICP>(box.profile)) {
     putU32(str2uint("nclx"));
-    auto const& nclx = std::get<ColourInformationBox::NCLX>(box.profile);
+    auto const& nclx = std::get<ColourInformationBox::CICP>(box.profile);
     putU16(nclx.colourPrimaries);
     putU16(nclx.transferCharacteristics);
     putU16(nclx.matrixCoefficients);

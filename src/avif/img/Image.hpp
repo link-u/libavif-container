@@ -44,7 +44,7 @@ private:
   std::vector<uint8_t> payload_;
 };
 
-using ColorProfile = std::variant<std::monostate, ICCProfile, ColourInformationBox::NCLX>;
+using ColorProfile = std::variant<std::monostate, ICCProfile, ColourInformationBox::CICP>;
 
 template <size_t BitsPerComponent>
 class Image final {

@@ -439,7 +439,7 @@ void Parser::parseColourInformationBox(ColourInformationBox& box, uint32_t end) 
   uint32_t const colourType = readU32();
   switch(colourType) {
     case str2uint("nclx"): {
-      ColourInformationBox::NCLX nclx{};
+      ColourInformationBox::CICP nclx{};
       nclx.colourPrimaries = readU16();
       nclx.transferCharacteristics = readU16();
       nclx.matrixCoefficients = readU16();
