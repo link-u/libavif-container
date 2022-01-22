@@ -11,7 +11,7 @@
 // https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2020-2-201510-I!!PDF-E.pdf
 // https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.709-6-201506-I!!PDF-E.pdf
 
-namespace avif::img::spec {
+namespace avif::img::color {
 
 template <typename T>
 static T clamp(T value, T low, T high) {
@@ -50,7 +50,7 @@ struct Quantizer final{};
 // https://www.itu.int/rec/T-REC-H.273-201612-I/en
 template <size_t rgbBits, size_t yuvBits>
 struct Quantizer<rgbBits, yuvBits, true> final{
-  using YUVSpec = typename spec::YUV<yuvBits>;
+  using YUVSpec = typename color::YUV<yuvBits>;
   using YUVType = typename YUVSpec::Type;
   constexpr static YUVType quantizeLuma(float const luma) {
     // https://www.itu.int/rec/T-REC-H.273-201612-I/en
@@ -82,7 +82,7 @@ struct Quantizer<rgbBits, yuvBits, true> final{
 
 template <size_t rgbBits, size_t yuvBits>
 struct Quantizer<rgbBits, yuvBits, false> final{
-  using YUVSpec = typename spec::YUV<yuvBits>;
+  using YUVSpec = typename color::YUV<yuvBits>;
   using YUVType = typename YUVSpec::Type;
   static YUVType quantizeLuma(float const luma) {
     // https://www.itu.int/rec/T-REC-H.273-201612-I/en

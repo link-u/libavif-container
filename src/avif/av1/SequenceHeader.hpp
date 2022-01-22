@@ -7,7 +7,7 @@
 #include <vector>
 #include <cstdint>
 #include <optional>
-#include "../img/Conversion.hpp"
+#include "../img/color/Constants.hpp"
 #include "Header.hpp"
 
 namespace avif::av1 {
@@ -93,13 +93,13 @@ struct SequenceHeader final {
     // 6.4.2. Color config semantics
     // color_primaries is an integer that is defined by the “Color primaries”
     // section of ISO/IEC 23091-4/ITU-T H.273.
-    std::optional<avif::img::ColorPrimaries> colorPrimaries{};
+    std::optional<avif::img::color::ColorPrimaries> colorPrimaries{};
     // transfer_characteristics is an integer that is defined by the “Transfer characteristics”
     // section of ISO/IEC 23091-4/ITU-T H.273.
-    std::optional<avif::img::TransferCharacteristics> transferCharacteristics{};
+    std::optional<avif::img::color::TransferCharacteristics> transferCharacteristics{};
     // matrix_coefficients is an integer that is defined by the “Matrix coefficients”
     // section of ISO/IEC 23091-4/ITU-T H.273.
-    std::optional<avif::img::MatrixCoefficients> matrixCoefficients{};
+    std::optional<avif::img::color::MatrixCoefficients> matrixCoefficients{};
     bool colorRange{};
     uint8_t subsamplingX{};
     uint8_t subsamplingY{};

@@ -61,7 +61,7 @@ template < size_t BitsPerComponent, typename Trans >
 void fill(Image<BitsPerComponent> const& src, Image<BitsPerComponent>& dst) {
   Trans trans;
 
-  using PixelType = typename spec::RGB <BitsPerComponent>::Type;
+  using PixelType = typename color::RGB <BitsPerComponent>::Type;
 
   // src
   uint8_t const* srcBase = src.data();

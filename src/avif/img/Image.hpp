@@ -9,8 +9,8 @@
 #include <cassert>
 #include <variant>
 
-#include "Spec.hpp"
-#include "ColorSpace.hpp"
+#include "./color/Math.hpp"
+#include "./color/Matrix.hpp"
 #include "../ColourInformationBox.hpp"
 
 namespace avif::img {
@@ -21,6 +21,21 @@ enum class PixelOrder {
   RGB, /* [R,G,B], [R,G,B], ... */
   RGBA, /* [R,G,B,A], [R,G,B,A], ... */
 };
+
+constexpr size_t calcNumComponents(PixelOrder const pixelOrder) noexcept {
+  switch (pixelOrder) {
+    case PixelOrder::RGB:
+      return 3;
+    case PixelOrder::RGBA:
+      return 4;
+    case PixelOrder::Mono:
+      return 1;
+    case PixelOrder::MonoA:
+      return 2;
+    default:
+      assert(false && "[BUG] Unknown PixelOrder constant!");
+  }
+}
 
 class ICCProfile final {
 public:
@@ -37,35 +52,21 @@ public:
   [[ nodiscard ]] std::vector<uint8_t> const& payload() const noexcept {
     return this->payload_;
   }
-
-  [[ nodiscard ]] PrimariesConverter calcColorCoefficients() const;
-
 private:
   std::vector<uint8_t> payload_;
 };
 
-using ColorProfile = std::variant<std::monostate, ICCProfile, ColourInformationBox::CICP>;
+struct ColorProfile final {
+public:
+  std::optional<ICCProfile> iccProfile;
+  std::optional<ColourInformationBox::CICP> cicp;
+};
 
 template <size_t BitsPerComponent>
 class Image final {
   static_assert(BitsPerComponent == 8 || BitsPerComponent == 16);
 private:
-  static constexpr size_t calcNumComponents(PixelOrder const pixelOrder) noexcept {
-    switch (pixelOrder) {
-      case PixelOrder::RGB:
-        return 3;
-      case PixelOrder::RGBA:
-        return 4;
-      case PixelOrder::Mono:
-        return 1;
-      case PixelOrder::MonoA:
-        return 2;
-      default:
-        assert(false && "[BUG] Unknown PixelOrder constant!");
-    }
-  }
-private:
-  ColorProfile colorProfile_;
+  ColorProfile colorProfile_{};
   PixelOrder pixelOrder_{};
   uint32_t width_{};
   uint32_t height_{};
@@ -79,7 +80,7 @@ public:
   Image& operator=(Image&&) noexcept = default;
   ~Image() noexcept = default;
 public:
-  explicit Image(ColorProfile colorProfile, PixelOrder pixelOrder, uint32_t width, uint32_t height, uint32_t bytesPerPiexl, uint32_t stride, std::vector<uint8_t> data)
+  explicit Image(ColorProfile colorProfile, PixelOrder pixelOrder, uint32_t width, uint32_t height, uint32_t stride, std::vector<uint8_t> data)
   :colorProfile_(std::move(colorProfile))
   ,pixelOrder_(pixelOrder)
   ,width_(width)
@@ -90,10 +91,10 @@ public:
   }
   static Image createEmptyImage(PixelOrder const pixelOrder, uint32_t const width, uint32_t const height) {
     std::vector<uint8_t> dstBuff;
-    size_t const bytesPerPixel = calcNumComponents(pixelOrder) * spec::RGB<BitsPerComponent>::bytesPerComponent;
+    size_t const bytesPerPixel = calcNumComponents(pixelOrder) * color::RGB<BitsPerComponent>::bytesPerComponent;
     size_t const stride = bytesPerPixel * width;
     dstBuff.resize(stride * height);
-    return Image(avif::img::ColorProfile(), pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
+    return Image(avif::img::ColorProfile{}, pixelOrder, width, height, bytesPerPixel, stride, std::move(dstBuff));
   }
   [[ nodiscard ]] ColorProfile const& colorProfile() const {
     return this->colorProfile_;
@@ -117,7 +118,7 @@ public:
     return numComponents() * this->bytesPerComponent();
   }
   [[ nodiscard ]] constexpr uint32_t bytesPerComponent() const {
-    return BitsPerComponent / 8;
+    return bitsPerComponent() / 8;
   }
   [[ nodiscard ]] constexpr uint8_t bitsPerComponent() const {
     return BitsPerComponent;
