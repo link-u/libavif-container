@@ -19,7 +19,7 @@ namespace avif::img::color {
 class IdentityConverter final {
 public:
   constexpr IdentityConverter() = default;
-  constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) const {
+  static constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     *y = g;
     if(u) {
       *u = b;
@@ -28,7 +28,7 @@ public:
       *v = r;
     }
   }
-  [[nodiscard]] constexpr std::tuple<float, float, float> calcRGB(float y, float u, float v) const {
+  [[nodiscard]] static constexpr std::tuple<float, float, float> calcRGB(float y, float u, float v) {
     return std::make_tuple(v, y, u);
   }
 };
