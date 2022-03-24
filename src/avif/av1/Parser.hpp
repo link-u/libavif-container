@@ -146,17 +146,17 @@ private:
 private:
   [[nodiscard]] size_t posInBits() { return this->reader_.posInBits(); }
   [[nodiscard]] size_t posInBytes() { return this->reader_.posInBytes(); }
-  void seekInBytes(size_t posInBytes) { this->reader_.seekInBytes(posInBytes); };
+  void seekInBytes(size_t posInBytes) { this->reader_.seekInBytes(posInBytes); }
   [[nodiscard]] bool consumed() { return this->reader_.consumed(); }
   [[nodiscard]] uint8_t  readBits(uint8_t bits) { return this->reader_.readBits(bits); }
-  [[nodiscard]] uint64_t readUint(size_t bits) { return this->reader_.readUint(bits); };
-  [[nodiscard]] bool  readBool() { return this->reader_.readBool(); };
-  [[nodiscard]] uint8_t  readU8() { return this->reader_.readU8(); };
-  [[nodiscard]] uint16_t readU16() { return this->reader_.readU16(); };
-  [[nodiscard]] uint32_t readU32() { return this->reader_.readU32(); };
-  [[nodiscard]] uint64_t readU64() { return this->reader_.readU64(); };
-  [[nodiscard]] uint32_t readLEB128() { return this->reader_.readLEB128(); };
-  [[nodiscard]] uint32_t readUVLC() { return this->reader_.readUVLC(); };
+  [[nodiscard]] uint64_t readUint(size_t bits) { return this->reader_.readUint(bits); }
+  [[nodiscard]] bool  readBool() { return this->reader_.readBool(); }
+  [[nodiscard]] uint8_t  readU8() { return this->reader_.readU8(); }
+  [[nodiscard]] uint16_t readU16() { return this->reader_.readU16(); }
+  [[nodiscard]] uint32_t readU32() { return this->reader_.readU32(); }
+  [[nodiscard]] uint64_t readU64() { return this->reader_.readU64(); }
+  [[nodiscard]] uint32_t readLEB128() { return this->reader_.readLEB128(); }
+  [[nodiscard]] uint32_t readUVLC() { return this->reader_.readUVLC(); }
 };
 
 }

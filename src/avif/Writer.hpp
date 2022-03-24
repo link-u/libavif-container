@@ -44,11 +44,11 @@ private:
 
 private:
   void putU8(uint8_t const data) { this->stream_.putU8(data); }
-  void putU16(uint16_t const data) { this->stream_.putU16B(data); };
-  void putU32(uint32_t const data) { this->stream_.putU32B(data); };
-  void putU64(uint64_t const data) { this->stream_.putU64B(data); };
-  void append(std::vector<uint8_t> const& data) { this->stream_.append(data); };
-  void append(uint8_t const*const data, size_t const length) { this->stream_.append(data, length); };
+  void putU16(uint16_t const data) { this->stream_.putU16B(data); }
+  void putU32(uint32_t const data) { this->stream_.putU32B(data); }
+  void putU64(uint64_t const data) { this->stream_.putU64B(data); }
+  void append(std::vector<uint8_t> const& data) { this->stream_.append(data); }
+  void append(uint8_t const*const data, size_t const length) { this->stream_.append(data, length); }
   void putTypeString(std::string const& type);
   void putString(std::string const& str);
 

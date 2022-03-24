@@ -45,7 +45,7 @@ public:
   [[nodiscard]] uint64_t readU64();
   [[nodiscard]] std::optional<uint64_t> readUint(size_t octets);
   [[nodiscard]] std::string readString();
-  [[nodiscard]] bool consumed() const { return this->pos_ >= this->buffer_.size(); };
+  [[nodiscard]] bool consumed() const { return this->pos_ >= this->buffer_.size(); }
 };
 
 }

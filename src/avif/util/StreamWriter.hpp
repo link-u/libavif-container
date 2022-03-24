@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <cstddef>
 
 namespace avif::util {
 
@@ -21,8 +22,8 @@ public:
   StreamWriter& operator=(StreamWriter const&) = delete;
 
 public:
-  [[nodiscard]] std::vector<uint8_t> const& buffer() const { return this->buff_; };
-  [[nodiscard]] size_t size() const { return this->buff_.size(); };
+  [[nodiscard]] std::vector<uint8_t> const& buffer() const { return this->buff_; }
+  [[nodiscard]] size_t size() const { return this->buff_.size(); }
   void putU8(uint8_t data);
   void putU16L(uint16_t data);
   void putU16B(uint16_t data);
