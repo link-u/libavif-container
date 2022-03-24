@@ -17,8 +17,11 @@ add_library(
     src/avif/util/StreamWriter.cpp
     src/avif/util/StreamWriter.cpp
 
+    src/avif/img/color/Math.hpp
+    src/avif/img/color/Constants.hpp
+    src/avif/img/color/Matrix.hpp
+
     src/avif/img/Image.hpp
-    src/avif/img/Spec.hpp
     src/avif/img/Conversion.hpp
     src/avif/img/Transform.hpp
     src/avif/img/TransformImpl.hpp
@@ -72,8 +75,6 @@ add_library(
     src/avif/av1/Query.hpp
     src/avif/av1/BitStreamReader.cpp
     src/avif/av1/BitStreamReader.hpp
-    src/avif/img/Image.cpp
-    src/avif/img/ColorSpace.hpp
 )
 
 # https://cmake.org/cmake/help/latest/manual/cmake-compile-features.7.html#requiring-language-standards
@@ -88,56 +89,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   # FIXME(ledyba-z): workaround for gcc-8
   target_link_libraries(libavif-container PRIVATE stdc++fs)
 endif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-
-###############################################################################
-option(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS "Embed Little CMS" ON)
-include(ExternalProject)
-
-if(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
-  find_program(MAKE_EXE NAMES gmake nmake make)
-
-  IF(CMAKE_BUILD_TYPE MATCHES Release)
-    ExternalProject_Add(lcms_repo
-        PREFIX "${CMAKE_BINARY_DIR}"
-        URL "${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS"
-        CONFIGURE_COMMAND
-        ${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS/configure
-        --prefix=${CMAKE_BINARY_DIR}
-        --enable-static
-        --disable-shared
-        --without-zlib
-        # --without-threads #FIXME(ledyba-z): We need to enable threads to build on Windows.
-        --without-jpeg
-        --without-tiff
-        BUILD_COMMAND ${MAKE_EXE}
-        INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND ${MAKE_EXE} install
-        )
-  ELSE()
-    ExternalProject_Add(lcms_repo
-        PREFIX "${CMAKE_BINARY_DIR}"
-        URL "${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS"
-        CONFIGURE_COMMAND
-        env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" ${CMAKE_CURRENT_SOURCE_DIR}/external/Little-CMS/configure
-        --prefix=${CMAKE_BINARY_DIR}
-        --enable-static
-        --disable-shared
-        --without-zlib
-        # --without-threads #FIXME(ledyba-z): We need to enable threads to build on Windows.
-        --without-jpeg
-        --without-tiff
-        BUILD_COMMAND ${MAKE_EXE}
-        INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND ${MAKE_EXE} install
-        )
-  ENDIF()
-  add_dependencies(libavif-container lcms_repo)
-  target_include_directories(libavif-container PRIVATE "${CMAKE_BINARY_DIR}/include")
-  target_link_directories(libavif-container INTERFACE "${CMAKE_BINARY_DIR}/lib")
-  target_link_libraries(libavif-container INTERFACE lcms2)
-ELSE(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
-  #FIXME(ledyba-z): How should we do?
-ENDIF(LIBAVIF_CONTAINER_EMBED_LITTLE_CMS)
 ###############################################################################
 option(LIBAVIF_CONTAINER_EMBED_FMT "Embed fmt::fmt" ON)
 IF(LIBAVIF_CONTAINER_EMBED_FMT)

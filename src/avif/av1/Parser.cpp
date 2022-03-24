@@ -3,6 +3,7 @@
 //
 
 #include "Parser.hpp"
+#include "../img/color/Matrix.hpp"
 
 namespace avif::av1 {
 
@@ -299,9 +300,9 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
   }
   cfg.colorDescriptionPresentFlag = readBool();
   if (cfg.colorDescriptionPresentFlag) {
-    cfg.colorPrimaries = static_cast<avif::img::ColorPrimaries>(readU8());
-    cfg.transferCharacteristics = static_cast<avif::img::TransferCharacteristics>(readU8());
-    cfg.matrixCoefficients = static_cast<avif::img::MatrixCoefficients>(readU8());
+    cfg.colorPrimaries = static_cast<avif::img::color::ColorPrimaries>(readU8());
+    cfg.transferCharacteristics = static_cast<avif::img::color::TransferCharacteristics>(readU8());
+    cfg.matrixCoefficients = static_cast<avif::img::color::MatrixCoefficients>(readU8());
   }
   if (cfg.monochrome) {
     cfg.colorRange = readBool();
@@ -311,9 +312,9 @@ SequenceHeader::ColorConfig Parser::parseColorConfig(SequenceHeader const& shdr)
     cfg.separateUVDeltaQ = false;
     return cfg;
   } else if (
-      cfg.colorPrimaries == avif::img::ColorPrimaries::CP_BT_709 &&
-          cfg.transferCharacteristics == avif::img::TransferCharacteristics::TC_SRGB &&
-          cfg.matrixCoefficients == avif::img::MatrixCoefficients::MC_IDENTITY) {
+      cfg.colorPrimaries == avif::img::color::ColorPrimaries::CP_BT_709 &&
+          cfg.transferCharacteristics == avif::img::color::TransferCharacteristics::TC_SRGB &&
+          cfg.matrixCoefficients == avif::img::color::MatrixCoefficients::MC_IDENTITY) {
     cfg.colorRange = true;
     cfg.subsamplingX = 0;
     cfg.subsamplingY = 0;
