@@ -22,7 +22,7 @@ enum class ColorPrimaries : uint8_t {
   CP_XYZ = 10,
   CP_SMPTE_431 = 11,
   CP_SMPTE_432 = 12,
-  CP_EBU_3213 = 22,
+  CP_22 = 22, // No corresponding industry specification identified
 };
 
 // transfer_characteristics is an integer that is defined by the “Transfer characteristics”
