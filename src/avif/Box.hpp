@@ -11,15 +11,15 @@ namespace avif {
 
 struct Box {
   struct Header {
-    uint32_t offset;
-    uint32_t size;
-    uint32_t type;
+    uint32_t offset = {};
+    uint32_t size = {};
+    uint32_t type = {};
     [[ nodiscard ]] uint32_t end() const {
       return this->offset + this->size;
     }
   };
 public:
-  Header hdr;
+  Header hdr = {};
 public:
   Box() = default;
   Box(Box&&) = default;
