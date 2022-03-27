@@ -15,6 +15,12 @@ A library to parsing and writing avif container.
 
 # How to use
 
+## To clone this repo
+
+```bash
+git clone --recurse-submodules --recursive https://github.com/link-u/libavif-container.git
+```
+
 ## From CMake
 
 We suggest you to vendor this library to your repo using `git submodule add`.
