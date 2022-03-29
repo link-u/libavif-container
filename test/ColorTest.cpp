@@ -6,6 +6,7 @@
 #include <memory>
 #include <gtest/gtest.h>
 #include "../src/avif/img/Conversion.hpp"
+#include "../src/avif/ColourInformationBox.hpp"
 
 TEST(ColorTest, LimitedTest) {
   using namespace avif::img;
@@ -56,4 +57,13 @@ TEST(ColorTest, FullTest) {
     ASSERT_EQ(128, u);
     ASSERT_EQ(128, v);
   }
+}
+
+TEST(ColorTest, CICP) {
+  auto const cicp = avif::ColourInformationBox::CICP{};
+  // sRGB
+  ASSERT_EQ(1, cicp.colourPrimaries);
+  ASSERT_EQ(13, cicp.transferCharacteristics);
+  ASSERT_TRUE(5 == cicp.matrixCoefficients || 6 == cicp.matrixCoefficients);
+  ASSERT_EQ(true, cicp.fullRangeFlag);
 }
