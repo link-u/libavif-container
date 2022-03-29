@@ -27,6 +27,8 @@ add_library(
     src/avif/img/TransformImpl.hpp
     src/avif/img/Crop.hpp
 
+    src/avif/math/Fraction.hpp
+
     src/avif/Constants.hpp
     src/avif/Constants.cpp
 
@@ -112,8 +114,9 @@ if(LIBAVIF_CONTAINER_BUILD_TESTS)
   add_executable(libavif-container-tests
       ${SRC_FILES}
       test/av1/ParseTest.cpp
+      test/math/FractionTest.cpp
       test/ColorTest.cpp
-      )
+  )
   target_link_libraries(libavif-container-tests PRIVATE libavif-container)
   target_link_libraries(libavif-container-tests PRIVATE gtest)
   target_link_libraries(libavif-container-tests PRIVATE gtest_main)
