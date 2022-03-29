@@ -8,19 +8,12 @@ namespace avif {
 
 struct ColourInformationBox final : public Box {
   struct CICP final {
-    uint16_t colourPrimaries{};
-    uint16_t transferCharacteristics{};
-    uint16_t matrixCoefficients{};
-    bool fullRangeFlag{};
     // See ISO_IEC_23000-22_2019_Amd_2_2021(en)
     // p.5
-    CICP()
-    :colourPrimaries(1)
-    ,transferCharacteristics(13)
-    ,matrixCoefficients(5 /* or 6 */)
-    ,fullRangeFlag(true)
-    {
-    }
+    uint16_t colourPrimaries = 1;
+    uint16_t transferCharacteristics = 13;
+    uint16_t matrixCoefficients = 5 /* or 6 */;
+    bool fullRangeFlag = true;
   };
   struct RestrictedICC {
     std::vector<uint8_t> payload;
