@@ -8,10 +8,10 @@ A library to parsing and writing avif container.
 
 ## Related repositories
 
- - [link-u/davif](https://github.com/link-u/davif) - avif decoder, using dav1d directly.
- - [link-u/cavif](https://github.com/link-u/cavif) - avif encoder, using libaom directly.
- - [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images) - sample images from us.
- - [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) - test files from Microsoft and Netflix.
+- [link-u/davif](https://github.com/link-u/davif) - avif decoder, using dav1d directly.
+- [link-u/cavif](https://github.com/link-u/cavif) - avif encoder, using libaom directly.
+- [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images) - sample images from us.
+- [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) - test files from Microsoft and Netflix.
 
 # How to use
 
