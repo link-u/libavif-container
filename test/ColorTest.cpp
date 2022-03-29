@@ -6,9 +6,8 @@
 #include <memory>
 #include <gtest/gtest.h>
 #include "../src/avif/img/Conversion.hpp"
-#include "../src/avif/ColourInformationBox.hpp"
 
-TEST(ColorTest, LimitedTest) {
+TEST(ColorTest, LimitedRange) {
   using namespace avif::img;
   using converter = avif::img::color::ConverterFactory<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
   { // Red color
@@ -35,7 +34,7 @@ TEST(ColorTest, LimitedTest) {
   }
 }
 
-TEST(ColorTest, FullTest) {
+TEST(ColorTest, FullRange) {
   using namespace avif::img;
   using converter = avif::img::color::ConverterFactory<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
   { // Red color
