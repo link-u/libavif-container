@@ -41,9 +41,9 @@ Image<BitsPerComponent> crop(Image<BitsPerComponent> const& src, CleanApertureBo
 
   // common
   size_t const bytesPerPixel = src.bytesPerPixel();
-  size_t lineCopySize = width * bytesPerPixel;
-  size_t lineOffset = offX * bytesPerPixel;
-  size_t lineEnd = lineOffset + lineCopySize;
+  size_t const lineCopySize = width * bytesPerPixel;
+  size_t const lineOffset = offX * bytesPerPixel;
+  size_t const lineEnd = lineOffset + lineCopySize;
 
   for (size_t y = 0; y < dstHeight; ++y) {
     std::copy(srcLine + lineOffset, srcLine + lineEnd, dstLine);
