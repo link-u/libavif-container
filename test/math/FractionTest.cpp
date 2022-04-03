@@ -48,3 +48,13 @@ TEST(FractionTest, Minus) {
   ASSERT_EQ(-1, v.numerator());
   ASSERT_EQ(2, v.denominator());
 }
+
+TEST(FractionTest, Add) {
+  using avif::math::Fraction;
+
+  auto const one = Fraction(1, 1);
+  auto const half = one.div(2);
+  auto const v = half.add(one);
+  ASSERT_EQ(3, v.numerator());
+  ASSERT_EQ(2, v.denominator());
+}

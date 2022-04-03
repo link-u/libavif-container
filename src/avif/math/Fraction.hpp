@@ -31,6 +31,10 @@ public:
     int32_t const r = std::lcm(std::abs(denominator_), std::abs(b.denominator_));
     return Fraction((r / denominator_ * numerator_) - (r / b.denominator_ * b.numerator_), r).reduce();
   }
+  [[ nodiscard ]] constexpr Fraction add(Fraction const& b) const {
+    int32_t const r = std::lcm(std::abs(denominator_), std::abs(b.denominator_));
+    return Fraction((r / denominator_ * numerator_) + (r / b.denominator_ * b.numerator_), r).reduce();
+  }
   [[ nodiscard ]] constexpr int32_t numerator() const {
     return numerator_;
   }
