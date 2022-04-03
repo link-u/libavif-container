@@ -13,6 +13,9 @@ namespace avif::img {
 
 template <size_t BitsPerComponent>
 Image<BitsPerComponent> crop(Image<BitsPerComponent> const& src, CleanApertureBox const& clap) {
+  // ISO/IEC 14496-12:2015(E)
+  // p.157
+
   float const horizOff = static_cast<float>(clap.horizOffN)/static_cast<float>(clap.horizOffD);
   float const vertOff = static_cast<float>(clap.vertOffN)/static_cast<float>(clap.vertOffD);
 
