@@ -58,7 +58,7 @@ TEST(ColorTest, FullRange) {
   }
 }
 
-TEST(ColorTest, CICP) {
+TEST(ColorTest, DefaultOfCICP) {
   auto const cicp = avif::ColourInformationBox::CICP{};
   // sRGB
   ASSERT_EQ(1, cicp.colourPrimaries);
