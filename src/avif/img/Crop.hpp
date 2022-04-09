@@ -25,8 +25,8 @@ Image<BitsPerComponent> crop(Image<BitsPerComponent> const& src, CleanApertureBo
   float const cleanApertureWidth = static_cast<float>(clap.cleanApertureWidthN)/static_cast<float>(clap.cleanApertureWidthD);
   float const cleanApertureHeight = static_cast<float>(clap.cleanApertureHeightN)/static_cast<float>(clap.cleanApertureHeightD);
 
-  auto const offX = std::max(static_cast<size_t>(std::round(pcX - (cleanApertureWidth - 1) / 2)), static_cast<size_t>(0));
-  auto const offY = std::max(static_cast<size_t>(std::round(pcY - (cleanApertureHeight - 1) / 2)), static_cast<size_t>(0));
+  size_t const offX = std::max(static_cast<size_t>(std::round(pcX - (cleanApertureWidth - 1) / 2)), static_cast<size_t>(0));
+  size_t const offY = std::max(static_cast<size_t>(std::round(pcY - (cleanApertureHeight - 1) / 2)), static_cast<size_t>(0));
 
   size_t const width = std::min(static_cast<size_t>(std::round(cleanApertureWidth)), src.width() - offX);
   size_t const height = std::min(static_cast<size_t>(std::round(cleanApertureHeight)), src.height() - offY);
