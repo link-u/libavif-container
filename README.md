@@ -51,7 +51,7 @@ MIT
   - [AV1 Image File Format (AVIF)](https://aomediacodec.github.io/av1-avif/)
   - [AV1 Codec ISO Media File Format Binding](https://aomediacodec.github.io/av1-isobmff/)
 - Others
-  - [AVIF2018.pdf](https://people.xiph.org/~negge/AVIF2018.pdf)
+  - [AVIF2018.pdf](http://web.archive.org/web/20181109113447/https://people.xiph.org/~negge/AVIF2018.pdf)
   - [A Technical Overview of AV1 | IEEE](https://ieeexplore.ieee.org/document/9363937)
 
 ## ISOBMFF
