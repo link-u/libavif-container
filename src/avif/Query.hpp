@@ -11,7 +11,7 @@ namespace avif::util::query {
 
 template <typename T>
 std::optional<T> findProperty(avif::FileBox const& fileBox, std::optional<uint32_t> itemID) {
-  for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations){
+  for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations) {
     for(auto const& item : assoc.items) {
       if(itemID.has_value() && item.itemID != itemID.value()) {
         continue;
@@ -27,7 +27,7 @@ std::optional<T> findProperty(avif::FileBox const& fileBox, std::optional<uint32
       }
     }
   }
-  return std::optional<T>();
+  return {};
 }
 
 std::pair<size_t, size_t> findItemRegion(avif::FileBox const& fileBox, std::optional<uint32_t> const itemID, std::optional<uint32_t> const extentID = {}) {
