@@ -279,6 +279,9 @@ void Writer::writeAV1CodecConfigurationRecordBox(AV1CodecConfigurationRecordBox&
 
 void Writer::writeItemPropertyAssociation(ItemPropertyAssociation& box) {
   auto context = this->beginFullBoxHeader("ipma", box);
+  // HEIF (ISO 23008-12:2017) 9.3.1
+  // There shall be at most one ItemPropertyAssociation box
+  // with a given pair of values of version and flags.
   this->putU32(box.items.size());
   for (auto& item : box.items) {
     if (box.version() < 1) {
