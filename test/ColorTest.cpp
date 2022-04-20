@@ -61,7 +61,7 @@ TEST(ColorTest, FullRange) {
 TEST(ColorTest, FullRangeIsBijection) {
   using namespace avif::img;
   using Converter = avif::img::color::ColorConverter<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
-  for(uint8_t r = 0; r <= 255; ++r) { // Red color
+  { // Red color
     uint16_t y = 0;
     uint16_t u = 0;
     uint16_t v = 0;
