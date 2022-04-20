@@ -16,9 +16,7 @@
 
 namespace avif::img::color {
 
-class IdentityConverter final {
-public:
-  constexpr IdentityConverter() = default;
+struct IdentityConverter {
   static constexpr void calcYUV(float r, float g, float b, float* y, float* u, float* v) {
     *y = g;
     if(u) {
@@ -36,25 +34,17 @@ public:
 //
 // This class corresponds to eq (38)-(40)
 //
-class PrimariesConverter final {
-public:
-  PrimariesConverter() = delete;
-  constexpr PrimariesConverter(float const Kr, float const Kb)
-  :Kr(Kr)
-  ,Kb(Kb)
-  ,Kg(1.0f - Kr -Kb)
-  ,Cb_B(2.0f * (1.0f - Kb))
-  ,Cb_G(-2.0f * (1.0f - Kb) * Kb / Kg)
-  ,Cr_R(2.0f * (1.0f - Kr))
-  ,Cr_G(-2.0f * (1.0f - Kr) * Kr / Kg)
-  {
+template <typename Self>
+struct PrimariesConverter {
+  static constexpr float Kr = Self::Kr;
+  static constexpr float Kb = Self::Kb;
+  static constexpr float Kg = (1.0f - Kr -Kb);
+  static constexpr float Cb_B = (2.0f * (1.0f - Kb));
+  static constexpr float Cb_G = (-2.0f * (1.0f - Kb) * Kb / Kg);
+  static constexpr float Cr_R = (2.0f * (1.0f - Kr));
+  static constexpr float Cr_G = (-2.0f * (1.0f - Kr) * Kr / Kg);
 
-  }
-  const float Kr;
-  const float Kb;
-  const float Kg;
-
-  constexpr void calcYUV(float const r, float const g, float const b, float* y, float* u, float* v) const {
+  static constexpr void calcYUV(float const r, float const g, float const b, float* y, float* u, float* v) {
     *y = Kr * r + Kg * g + Kb * b;
     if (u) {
       *u = 0.5f * (b - *y) / (1.0f - Kb);
@@ -64,183 +54,122 @@ public:
     }
   }
 
-  [[nodiscard]] constexpr std::tuple<float, float, float> calcRGB(float const y, float const u, float const v) const {
+  [[nodiscard]] static constexpr std::tuple<float, float, float> calcRGB(float const y, float const u, float const v) {
     float const r = y             + Cr_R * v;
     float const g = y + Cb_G * u  + Cr_G * v;
     float const b = y + Cb_B * u;
     return std::make_tuple(r, g, b);
   }
-
-private:
-  const float Cb_B;
-  const float Cb_G;
-
-  const float Cr_R;
-  const float Cr_G;
 };
 
-class ReservedConverter final {
-public:
-  ReservedConverter() = delete;
-  explicit constexpr ReservedConverter(MatrixCoefficients mat)
-      :mat_(mat) {
 
+template <MatrixCoefficients mat>
+struct ReservedConverter {
+  static void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is reserved for future ues by ISO/IEC.", static_cast<uint8_t>(mat)));
   }
-  void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is reserved for future ues by ISO/IEC.", static_cast<uint8_t>(mat_)));
+  [[nodiscard]] static std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is reserved for future ues by ISO/IEC.", static_cast<uint8_t>(mat)));
   }
-  [[nodiscard]] std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is reserved for future ues by ISO/IEC.", static_cast<uint8_t>(mat_)));
-  }
-
-private:
-  const MatrixCoefficients mat_;
 };
 
 // Unspecified
-class UnspecifiedConverter final {
-public:
-  UnspecifiedConverter() = delete;
-  explicit constexpr UnspecifiedConverter(MatrixCoefficients mat)
-      :mat_(mat) {
+template <MatrixCoefficients mat>
+struct UnspecifiedConverter {
+  static void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} means 'unspecified'.", static_cast<uint8_t>(mat)));
   }
-  void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} means 'unspecified'.", static_cast<uint8_t>(mat_)));
+  [[nodiscard]] static std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} means 'unspecified'.", static_cast<uint8_t>(mat)));
   }
-  [[nodiscard]] std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} means 'unspecified'.", static_cast<uint8_t>(mat_)));
-  }
-
-private:
-  const MatrixCoefficients mat_;
 };
 
 // Fallback
-class UnimplementedConverter final {
-public:
-  UnimplementedConverter() = delete;
-  explicit constexpr UnimplementedConverter(MatrixCoefficients mat)
-  :mat_(mat) {
+template <MatrixCoefficients mat>
+struct UnimplementedConverter {
+  static void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat)));
   }
-  void calcYUV(float /* r */, float /* g */, float /* b */, float* /* y */, float* /* u */, float* /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat_)));
+  [[nodiscard]] static std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) {
+    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat)));
   }
-  [[nodiscard]] std::tuple<float, float, float> calcRGB(float /* y */, float /* u */, float /* v */) const {
-    throw std::logic_error(fmt::format("[TODO] MatrixCoefficients = {} is not implemented yet.", static_cast<uint8_t>(mat_)));
-  }
-
-private:
-  const MatrixCoefficients mat_;
 };
 
 /*
  * ConverterFactory. It returns different struct according to MatrixCoefficients.
  */
 
-// Generally, it is reserved.
-template <MatrixCoefficients code>
-struct ConverterFactory {
-  static constexpr auto create() {
-    return ReservedConverter(code);
-  }
+// Generally, it is unimplemented.
+template <MatrixCoefficients mat>
+struct ColorConverter final: public UnimplementedConverter<mat> {
+};
+
+template<>
+struct ColorConverter<MatrixCoefficients::MC_IDENTITY> final: public IdentityConverter {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_IDENTITY> {
-  static constexpr auto create() {
-    return IdentityConverter();
-  }
+struct ColorConverter<MatrixCoefficients::MC_BT_709> final : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_BT_709>> {
+  static constexpr float Kr = 0.2126f;
+  static constexpr float Kb = 0.0722f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_BT_709> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.2126f, 0.0722f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_RESERVED_3> final : public ReservedConverter<MatrixCoefficients::MC_RESERVED_3> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_RESERVED_3> {
-  static constexpr auto create() {
-    return ReservedConverter(MatrixCoefficients::MC_RESERVED_3);
-  }
+struct ColorConverter<MatrixCoefficients::MC_FCC> : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_FCC>> {
+  static constexpr float Kr = 0.30f;
+  static constexpr float Kb = 0.11f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_FCC> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.30f, 0.11f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_BT_470_B_G> : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_BT_470_B_G>> {
+  static constexpr float Kr = 0.299f;
+  static constexpr float Kb = 0.114f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_BT_470_B_G> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.299f, 0.114f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_NSTC> : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_NSTC>> {
+  static constexpr float Kr = 0.299f;
+  static constexpr float Kb = 0.114f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_NSTC> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.299f, 0.114f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_SMPTE_240> : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_SMPTE_240>> {
+  static constexpr float Kr = 0.212f;
+  static constexpr float Kb = 0.087f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_SMPTE_240> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.212f, 0.087f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_SMPTE_YCGCO> : public UnimplementedConverter<MatrixCoefficients::MC_SMPTE_YCGCO> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_SMPTE_YCGCO> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_SMPTE_YCGCO);
-  }
+struct ColorConverter<MatrixCoefficients::MC_BT_2020_NCL> : public PrimariesConverter<ColorConverter<MatrixCoefficients::MC_BT_2020_NCL>> {
+  static constexpr float Kr = 0.2627f;
+  static constexpr float Kb = 0.0593f;
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_BT_2020_NCL> {
-  static constexpr auto create() {
-    return PrimariesConverter(0.2627f, 0.0593f);
-  }
+struct ColorConverter<MatrixCoefficients::MC_BT_2020_CL> : public UnimplementedConverter<MatrixCoefficients::MC_BT_2020_CL> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_BT_2020_CL> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_SMPTE_YCGCO);
-  }
+struct ColorConverter<MatrixCoefficients::MC_SMPTE_2085> : public UnimplementedConverter<MatrixCoefficients::MC_SMPTE_2085> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_SMPTE_2085> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_SMPTE_2085);
-  }
+struct ColorConverter<MatrixCoefficients::MC_CHROMAT_NCL> : public UnimplementedConverter<MatrixCoefficients::MC_CHROMAT_NCL> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_CHROMAT_NCL> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_CHROMAT_NCL);
-  }
+struct ColorConverter<MatrixCoefficients::MC_CHROMAT_CL> : public UnimplementedConverter<MatrixCoefficients::MC_CHROMAT_CL> {
 };
 
 template <>
-struct ConverterFactory<MatrixCoefficients::MC_CHROMAT_CL> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_CHROMAT_CL);
-  }
-};
-
-template <>
-struct ConverterFactory<MatrixCoefficients::MC_BT_2100_ICTCP> {
-  static constexpr auto create() {
-    return UnimplementedConverter(MatrixCoefficients::MC_BT_2100_ICTCP);
-  }
+struct ColorConverter<MatrixCoefficients::MC_BT_2100_ICTCP> : public UnimplementedConverter<MatrixCoefficients::MC_BT_2100_ICTCP> {
 };
 
 }
