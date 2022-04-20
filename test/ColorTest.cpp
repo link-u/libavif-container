@@ -9,16 +9,16 @@
 
 TEST(ColorTest, LimitedRange) {
   using namespace avif::img;
-  using converter = avif::img::color::ConverterFactory<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
+  using Converter = avif::img::color::ColorConverter<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
   { // Red color
     uint16_t y = 0;
     uint16_t u = 0;
     uint16_t v = 0;
-    detail::calcYUV<converter, 8, 12, false, false>(255, 0, 0, &y, &u, &v);
+    detail::calcYUV<Converter, 8, 12, false, false>(255, 0, 0, &y, &u, &v);
     uint8_t r = 0;
     uint8_t g = 0;
     uint8_t b = 0;
-    std::tie(r,g,b) = detail::calcRGB<converter, 8, 12, false, false>(&y, &u, &v);
+    std::tie(r,g,b) = detail::calcRGB<Converter, 8, 12, false, false>(&y, &u, &v);
     ASSERT_EQ(255, r);
     ASSERT_EQ(0, g);
     ASSERT_EQ(0, b);
@@ -27,7 +27,7 @@ TEST(ColorTest, LimitedRange) {
     uint8_t y = 0;
     uint8_t u = 0;
     uint8_t v = 0;
-    detail::calcYUV<converter, 8, 8, false, false>(255, 255, 255, &y, &u, &v);
+    detail::calcYUV<Converter, 8, 8, false, false>(255, 255, 255, &y, &u, &v);
     ASSERT_EQ(235, y);
     ASSERT_EQ(128, u);
     ASSERT_EQ(128, v);
@@ -36,13 +36,13 @@ TEST(ColorTest, LimitedRange) {
 
 TEST(ColorTest, FullRange) {
   using namespace avif::img;
-  using converter = avif::img::color::ConverterFactory<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
+  using Converter = avif::img::color::ColorConverter<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
   { // Red color
     uint16_t y = 0;
     uint16_t u = 0;
     uint16_t v = 0;
-    detail::calcYUV<converter, 8, 12, false, true>(255, 0, 0, &y, &u, &v);
-    auto [r,g,b] = detail::calcRGB<converter, 8, 12, false, true>(&y, &u, &v);
+    detail::calcYUV<Converter, 8, 12, false, true>(255, 0, 0, &y, &u, &v);
+    auto [r,g,b] = detail::calcRGB<Converter, 8, 12, false, true>(&y, &u, &v);
     ASSERT_EQ(255, r);
     ASSERT_EQ(0, g);
     ASSERT_EQ(0, b);
@@ -51,7 +51,31 @@ TEST(ColorTest, FullRange) {
     uint8_t y = 0;
     uint8_t u = 0;
     uint8_t v = 0;
-    detail::calcYUV<converter, 8, 8, false, true>(255, 255, 255, &y, &u, &v);
+    detail::calcYUV<Converter, 8, 8, false, true>(255, 255, 255, &y, &u, &v);
+    ASSERT_EQ(255, y);
+    ASSERT_EQ(128, u);
+    ASSERT_EQ(128, v);
+  }
+}
+
+TEST(ColorTest, FullRangeIsBijection) {
+  using namespace avif::img;
+  using Converter = avif::img::color::ColorConverter<avif::img::color::MatrixCoefficients::MC_BT_2020_NCL>;
+  for(uint8_t r = 0; r <= 255; ++r) { // Red color
+    uint16_t y = 0;
+    uint16_t u = 0;
+    uint16_t v = 0;
+    detail::calcYUV<Converter, 8, 12, false, true>(255, 0, 0, &y, &u, &v);
+    auto [r,g,b] = detail::calcRGB<Converter, 8, 12, false, true>(&y, &u, &v);
+    ASSERT_EQ(255, r);
+    ASSERT_EQ(0, g);
+    ASSERT_EQ(0, b);
+  }
+  { // White must have max luma and no chroma.
+    uint8_t y = 0;
+    uint8_t u = 0;
+    uint8_t v = 0;
+    detail::calcYUV<Converter, 8, 8, false, true>(255, 255, 255, &y, &u, &v);
     ASSERT_EQ(255, y);
     ASSERT_EQ(128, u);
     ASSERT_EQ(128, v);
