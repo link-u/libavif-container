@@ -1,5 +1,9 @@
 # libavif-container
 
+**Currently maitained by [avif-community](https://github.com/avif-community/libavif-container)**
+
+**[avif-community](https://github.com/avif-community/libavif-container)でメンテナンスを継続しております**
+
 [![Unit tests](https://github.com/link-u/libavif-container/workflows/Unit%20tests/badge.svg)](https://github.com/link-u/libavif-container/actions?query=workflow%3A%22Unit+tests%22)
 
 A library to parsing and writing avif container.
