@@ -1,6 +1,6 @@
 # libavif-container
 
-## **Sorry, this repository is no longer maintained due to the retirement of the main maintainer. There are some alternatives like `libavif-bin`. After some time, this repository will be archived.**
+## **Sorry, this repository is no longer maintained due to the retirement of the main maintainer. After some time, this repository will be archived.**
 
 [![Unit tests](https://github.com/link-u/libavif-container/workflows/Unit%20tests/badge.svg)](https://github.com/link-u/libavif-container/actions?query=workflow%3A%22Unit+tests%22)
 
