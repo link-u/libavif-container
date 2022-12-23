@@ -1,6 +1,11 @@
 # libavif-container
 
-## **Sorry, this repository is no longer maintained due to the retirement of the main maintainer. After some time, this repository will be archived.**
+**Sorry, this repository is no longer maintained due to the retirement of the main maintainer. After some time, this repository will be archived.**
+
+**Ther source is currently maitained on [avif-community](https://github.com/avif-community/libavif-container) by the maintaier. It's not a official community of AVIF codec. We take no resposibility the name of this community.**
+
+**This repository will be removed after 2022-01-31 to resolve the confusing situation.**
+
 
 [![Unit tests](https://github.com/link-u/libavif-container/workflows/Unit%20tests/badge.svg)](https://github.com/link-u/libavif-container/actions?query=workflow%3A%22Unit+tests%22)
 
